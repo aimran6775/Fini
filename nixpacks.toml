@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/nixpacks",
+  "providers": ["node"],
+  "buildImage": "node:20-alpine",
+  "phases": {
+    "install": {
+      "cmds": ["npm ci"]
+    },
+    "build": {
+      "cmds": ["npm run build"]
+    }
+  },
+  "start": {
+    "cmd": "node .next/standalone/server.js"
+  }
+}
