@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen } from "lucide-react";
+import { CreateAccountDialog } from "@/components/dashboard/create-account-dialog";
 
 export default async function AccountsPage() {
   const supabase = await createClient();

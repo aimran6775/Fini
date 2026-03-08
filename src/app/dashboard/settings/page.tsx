@@ -180,12 +180,12 @@ export default async function SettingsPage() {
                     <span className="font-mono font-medium">{TAX_RATES.ISR_UTILIDADES * 100}%</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
-                    <span className="text-sm text-muted-foreground">ISR — Simplificado (hasta Q150k)</span>
-                    <span className="font-mono font-medium">{TAX_RATES.ISR_SIMPLIFICADO_5 * 100}%</span>
+                    <span className="text-sm text-muted-foreground">ISR — Simplificado (hasta Q30k/mes)</span>
+                    <span className="font-mono font-medium">{TAX_RATES.ISR_SIMPLIFICADO_LOW * 100}%</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
-                    <span className="text-sm text-muted-foreground">ISR — Simplificado (exceso Q150k)</span>
-                    <span className="font-mono font-medium">{TAX_RATES.ISR_SIMPLIFICADO_7 * 100}%</span>
+                    <span className="text-sm text-muted-foreground">ISR — Simplificado (exceso Q30k/mes)</span>
+                    <span className="font-mono font-medium">{TAX_RATES.ISR_SIMPLIFICADO_HIGH * 100}%</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">ISO</span>
@@ -193,11 +193,11 @@ export default async function SettingsPage() {
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">IGSS — Empleado</span>
-                    <span className="font-mono font-medium">{TAX_RATES.IGSS_EMPLEADO * 100}%</span>
+                    <span className="font-mono font-medium">{TAX_RATES.IGSS_EMPLOYEE * 100}%</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">IGSS — Patronal</span>
-                    <span className="font-mono font-medium">{TAX_RATES.IGSS_PATRONAL * 100}%</span>
+                    <span className="font-mono font-medium">{TAX_RATES.IGSS_EMPLOYER * 100}%</span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">IRTRA</span>
