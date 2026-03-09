@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/shell";
+import { SetupWizard } from "@/components/dashboard/setup-wizard";
 
 export default async function DashboardLayout({
   children,
@@ -33,9 +34,13 @@ export default async function DashboardLayout({
     role: m.role,
   })) ?? [];
 
-  // If no orgs, redirect to onboarding
+  // If no orgs, show the setup wizard inline instead of redirecting
   if (orgs.length === 0) {
-    redirect("/onboarding");
+    const displayName =
+      profile?.first_name ||
+      user.user_metadata?.full_name?.split(" ")[0] ||
+      undefined;
+    return <SetupWizard userName={displayName} />;
   }
 
   return (
