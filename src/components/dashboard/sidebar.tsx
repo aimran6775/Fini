@@ -89,14 +89,14 @@ export function Sidebar({ open, onToggle, currentOrg, organizations, onOrgChange
       {/* ── Top: logo + org switcher ── */}
       <div className="flex-shrink-0 p-3">
         {/* Logo */}
-        <div className={cn("flex items-center gap-2.5 px-2 py-2", !open && "justify-center")}>
+        <Link href="/" className={cn("flex items-center gap-2.5 px-2 py-2 hover:opacity-80 transition-opacity", !open && "justify-center")}>
           <FiniTaxMark size={32} />
           {open && (
             <span className="font-bold text-base tracking-tight text-white">
               Fini<span className="text-sidebar-primary">Tax</span>
             </span>
           )}
-        </div>
+        </Link>
 
         {/* Org Switcher */}
         {open && currentOrg && (

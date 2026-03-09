@@ -55,11 +55,11 @@ function VideoBackground({ src, overlay = "bg-black/60", children, className = "
 }) {
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" suppressHydrationWarning>
         <source src={src} type="video/mp4" />
       </video>
       <div className={`absolute inset-0 ${overlay}`} />
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 w-full">{children}</div>
     </div>
   );
 }
@@ -115,7 +115,9 @@ export default function LandingPage() {
           : "bg-transparent"
       }`}>
         <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-4">
-          <FiniTaxLogo size={34} textSize="text-xl" className="text-white" />
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <FiniTaxLogo size={34} textSize="text-xl" className="text-white" />
+          </Link>
           <div className="hidden md:flex items-center gap-8 text-sm">
             <a href="#features" className="text-white/60 hover:text-white transition-colors">Funciones</a>
             <a href="#taxes" className="text-white/60 hover:text-white transition-colors">Impuestos</a>
@@ -351,7 +353,9 @@ export default function LandingPage() {
       {/* ── Footer ────────────────────────────────────────────── */}
       <footer className="border-t border-white/5 py-12">
         <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
+          </Link>
           <p className="text-xs text-white/30">
             © {new Date().getFullYear()} FiniTax Guatemala. Todos los derechos reservados.
           </p>
