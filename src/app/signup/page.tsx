@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { AlertBanner } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { FiniTaxLogo } from "@/components/logo";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -81,29 +82,18 @@ export default function SignupPage() {
   return (
     <div className="flex min-h-screen">
       {/* ─── Left: Visual Panel ─── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="h-full w-full object-cover"
-          >
-            <source src="https://videos.pexels.com/video-files/4065924/4065924-uhd_2560_1440_30fps.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/70 via-teal-900/60 to-black/60" />
-          <div className="absolute inset-0 dot-pattern opacity-20" />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: '#06060f' }}>
+        {/* Animated orbs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="animate-blob absolute -top-32 -right-20 h-[500px] w-[500px] rounded-full blur-[120px]" style={{ background: 'rgba(16,185,129,0.28)' }} />
+          <div className="animate-blob delay-2000 absolute bottom-0 -left-20 h-[400px] w-[400px] rounded-full blur-[100px]" style={{ background: 'rgba(79,70,229,0.28)' }} />
+          <div className="animate-blob delay-4000 absolute top-1/3 right-1/3 h-[300px] w-[300px] rounded-full blur-[80px]" style={{ background: 'rgba(20,184,166,0.2)' }} />
         </div>
+        <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
 
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm font-bold text-lg border border-white/20">
-              F
-            </div>
-            <span className="text-xl font-bold">
-              FiniTax <span className="text-white/60 text-sm font-normal">Guatemala</span>
-            </span>
+          <Link href="/">
+            <FiniTaxLogo size={38} textSize="text-xl" />
           </Link>
 
           <div className="max-w-md">
@@ -155,13 +145,8 @@ export default function SignupPage() {
         <div className="flex flex-1 items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm">
             {/* Mobile logo */}
-            <div className="lg:hidden flex items-center gap-2.5 mb-8">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary text-white font-bold shadow-md shadow-primary/25">
-                F
-              </div>
-              <span className="text-xl font-bold">
-                Fini<span className="text-primary">Tax</span>
-              </span>
+            <div className="lg:hidden mb-8">
+              <FiniTaxLogo size={36} textSize="text-xl" />
             </div>
 
             <div className="mb-8">

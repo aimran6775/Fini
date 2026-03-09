@@ -9,6 +9,7 @@ import {
   ChevronLeft, Building2, Package, PiggyBank, Wrench,
   Bell, Shield, ChevronsUpDown, Sparkles
 } from "lucide-react";
+import { FiniTaxMark } from "@/components/logo";
 
 /* ─── Navigation Groups ─── */
 const navGroups = [
@@ -109,8 +110,8 @@ export function Sidebar({ open, onToggle, currentOrg, organizations, onOrgChange
             )}
           </div>
         ) : (
-          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-indigo-400 text-white font-bold text-sm shadow-md shadow-sidebar-primary/20">
-            {currentOrg?.name?.[0] ?? "F"}
+          <div className="mx-auto">
+            <FiniTaxMark size={36} />
           </div>
         )}
       </div>
