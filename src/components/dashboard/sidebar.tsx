@@ -3,65 +3,67 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard, Receipt, Wallet, BookOpen, Calculator,
-  Users, Landmark, FileText, BarChart3, Bot, Settings,
-  ChevronLeft, Building2, Package, PiggyBank, Wrench,
-  Bell, Shield, ChevronsUpDown, Sparkles
-} from "lucide-react";
 import { FiniTaxMark } from "@/components/logo";
+import {
+  LayoutDashboard, FileText, Receipt, Landmark, BookOpen, BookMarked,
+  Package, Users2, Contact2, Calculator, BarChart3, Boxes, PiggyBank,
+  Bot, Bell, ShieldCheck, Settings, ChevronLeft, ChevronDown, Building2,
+  Check, Sparkles,
+} from "lucide-react";
+import { useState } from "react";
 
-/* ─── Navigation Groups ─── */
+/* ── Navigation structure ────────────────────────────────────── */
 const navGroups = [
   {
     label: "General",
     items: [
-      { href: "/dashboard", label: "Panel Principal", icon: LayoutDashboard },
+      { label: "Panel Principal", href: "/dashboard", icon: LayoutDashboard },
     ],
   },
   {
     label: "Finanzas",
     items: [
-      { href: "/dashboard/invoices", label: "Facturación FEL", icon: Receipt },
-      { href: "/dashboard/expenses", label: "Gastos", icon: Wallet },
-      { href: "/dashboard/banking", label: "Bancos", icon: Landmark },
+      { label: "Facturación FEL", href: "/dashboard/invoices", icon: FileText },
+      { label: "Gastos", href: "/dashboard/expenses", icon: Receipt },
+      { label: "Bancos", href: "/dashboard/banking", icon: Landmark },
     ],
   },
   {
     label: "Contabilidad",
     items: [
-      { href: "/dashboard/accounts", label: "Plan de Cuentas", icon: BookOpen },
-      { href: "/dashboard/journal", label: "Diario Contable", icon: FileText },
-      { href: "/dashboard/assets", label: "Activos Fijos", icon: Wrench },
+      { label: "Plan de Cuentas", href: "/dashboard/accounts", icon: BookOpen },
+      { label: "Diario Contable", href: "/dashboard/journal", icon: BookMarked },
+      { label: "Activos Fijos", href: "/dashboard/assets", icon: Package },
     ],
   },
   {
     label: "RRHH",
     items: [
-      { href: "/dashboard/payroll", label: "Planilla", icon: Users },
-      { href: "/dashboard/contacts", label: "Contactos", icon: Building2 },
+      { label: "Planilla", href: "/dashboard/payroll", icon: Users2 },
+      { label: "Contactos", href: "/dashboard/contacts", icon: Contact2 },
     ],
   },
   {
     label: "Reportes",
     items: [
-      { href: "/dashboard/tax", label: "Impuestos", icon: Calculator },
-      { href: "/dashboard/reports", label: "Reportes", icon: BarChart3 },
-      { href: "/dashboard/inventory", label: "Inventario", icon: Package },
-      { href: "/dashboard/budgets", label: "Presupuestos", icon: PiggyBank },
+      { label: "Impuestos", href: "/dashboard/tax", icon: Calculator },
+      { label: "Reportes", href: "/dashboard/reports", icon: BarChart3 },
+      { label: "Inventario", href: "/dashboard/inventory", icon: Boxes },
+      { label: "Presupuestos", href: "/dashboard/budgets", icon: PiggyBank },
     ],
   },
   {
     label: "Herramientas",
     items: [
-      { href: "/dashboard/ai", label: "Asistente IA", icon: Bot },
-      { href: "/dashboard/notifications", label: "Notificaciones", icon: Bell },
-      { href: "/dashboard/audit", label: "Auditoría", icon: Shield },
-      { href: "/dashboard/settings", label: "Configuración", icon: Settings },
+      { label: "Asistente IA", href: "/dashboard/ai", icon: Bot },
+      { label: "Notificaciones", href: "/dashboard/notifications", icon: Bell },
+      { label: "Auditoría", href: "/dashboard/audit", icon: ShieldCheck },
+      { label: "Configuración", href: "/dashboard/settings", icon: Settings },
     ],
   },
 ];
 
+/* ── Types ────────────────────────────────────────────────────── */
 interface SidebarProps {
   open: boolean;
   onToggle: () => void;
@@ -72,109 +74,129 @@ interface SidebarProps {
 
 export function Sidebar({ open, onToggle, currentOrg, organizations, onOrgChange }: SidebarProps) {
   const pathname = usePathname();
+  const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
+
+  const isActive = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
 
   return (
     <aside
       className={cn(
-        "flex h-screen flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-all duration-300 ease-in-out",
-        open ? "w-64" : "w-[70px]"
+        "flex h-screen flex-col bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ease-in-out relative",
+        open ? "w-[264px]" : "w-[70px]"
       )}
     >
-      {/* ─── Org Switcher ─── */}
-      <div className="flex h-16 items-center border-b border-sidebar-border px-3">
-        {open ? (
-          <div className="relative flex w-full items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sidebar-primary to-indigo-400 text-white font-bold text-sm flex-shrink-0 shadow-md shadow-sidebar-primary/20">
-              {currentOrg?.name?.[0] ?? "F"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-semibold text-sidebar-foreground">{currentOrg?.name ?? "FiniTax"}</p>
-              <p className="truncate text-xs text-sidebar-foreground/40">NIT: {currentOrg?.nit_number ?? ""}</p>
-            </div>
-            {organizations.length > 1 && (
-              <div className="relative">
-                <ChevronsUpDown className="h-4 w-4 text-sidebar-foreground/40" />
-                <select
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  value={currentOrg?.id}
-                  onChange={(e) => {
-                    const org = organizations.find((o: any) => o.id === e.target.value);
-                    if (org) onOrgChange(org);
-                  }}
-                >
-                  {organizations.map((org: any) => (
-                    <option key={org.id} value={org.id}>{org.name}</option>
-                  ))}
-                </select>
+      {/* ── Top: logo + org switcher ── */}
+      <div className="flex-shrink-0 p-3">
+        {/* Logo */}
+        <div className={cn("flex items-center gap-2.5 px-2 py-2", !open && "justify-center")}>
+          <FiniTaxMark size={32} />
+          {open && (
+            <span className="font-bold text-base tracking-tight text-white">
+              Fini<span className="text-sidebar-primary">Tax</span>
+            </span>
+          )}
+        </div>
+
+        {/* Org Switcher */}
+        {open && currentOrg && (
+          <div className="mt-3 relative">
+            <button
+              onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
+              className="w-full flex items-center gap-2.5 rounded-xl bg-sidebar-accent/50 border border-sidebar-border px-3 py-2.5 text-left hover:bg-sidebar-accent transition-colors"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary/15 text-sidebar-primary text-xs font-bold flex-shrink-0">
+                {currentOrg.name?.[0]?.toUpperCase() ?? "?"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white truncate">{currentOrg.name}</p>
+                <p className="text-[10px] text-sidebar-foreground/40 capitalize">{currentOrg.role}</p>
+              </div>
+              <ChevronDown className={cn("h-3.5 w-3.5 text-sidebar-foreground/30 transition-transform", orgDropdownOpen && "rotate-180")} />
+            </button>
+
+            {orgDropdownOpen && organizations.length > 1 && (
+              <div className="absolute top-full left-0 right-0 mt-1 rounded-xl bg-[#0f0f2e] border border-sidebar-border shadow-xl z-50 overflow-hidden">
+                {organizations.map((org: any) => (
+                  <button
+                    key={org.id}
+                    onClick={() => { onOrgChange(org); setOrgDropdownOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-sidebar-accent/50 transition-colors text-sm"
+                  >
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary/10 text-sidebar-primary text-xs font-bold">
+                      {org.name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <span className="flex-1 truncate text-xs text-sidebar-foreground">{org.name}</span>
+                    {org.id === currentOrg?.id && <Check className="h-3.5 w-3.5 text-sidebar-primary" />}
+                  </button>
+                ))}
               </div>
             )}
-          </div>
-        ) : (
-          <div className="mx-auto">
-            <FiniTaxMark size={36} />
           </div>
         )}
       </div>
 
-      {/* ─── Navigation ─── */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+      {/* ── Navigation ── */}
+      <nav className="flex-1 overflow-y-auto px-2 py-2 scrollbar-thin">
         {navGroups.map((group) => (
-          <div key={group.label}>
+          <div key={group.label} className="mb-1">
             {open && (
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-sidebar-foreground/30">
+              <p className="px-3 pt-4 pb-1.5 text-[10px] font-semibold text-sidebar-foreground/25 uppercase tracking-[0.15em]">
                 {group.label}
               </p>
             )}
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/dashboard" && pathname.startsWith(item.href));
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
-                      isActive
-                        ? "bg-sidebar-primary/15 text-sidebar-primary font-semibold shadow-sm shadow-sidebar-primary/5"
-                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                    )}
-                    title={!open ? item.label : undefined}
-                  >
-                    <item.icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive && "text-sidebar-primary")} />
-                    {open && <span className="truncate">{item.label}</span>}
-                    {isActive && open && (
-                      <div className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-primary" />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
+            {!open && <div className="my-2 mx-3 border-t border-sidebar-border/30" />}
+            {group.items.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 relative",
+                    active
+                      ? "bg-sidebar-primary/10 text-white font-medium"
+                      : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80 hover:bg-sidebar-accent/40",
+                    !open && "justify-center px-0"
+                  )}
+                >
+                  {/* Active indicator */}
+                  {active && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary" />
+                  )}
+                  <item.icon className={cn("h-[18px] w-[18px] flex-shrink-0", active ? "text-sidebar-primary" : "text-sidebar-foreground/35 group-hover:text-sidebar-foreground/60")} />
+                  {open && <span className="truncate">{item.label}</span>}
+                </Link>
+              );
+            })}
           </div>
         ))}
       </nav>
 
-      {/* ─── Upgrade Banner (collapsed = icon only) ─── */}
-      {open && (
-        <div className="mx-3 mb-3 rounded-xl bg-gradient-to-br from-sidebar-primary/20 to-indigo-500/10 p-4 border border-sidebar-primary/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-4 w-4 text-sidebar-primary" />
-            <span className="text-xs font-semibold text-sidebar-primary">Pro</span>
+      {/* ── Bottom: Upgrade + Toggle ── */}
+      <div className="flex-shrink-0 p-3 border-t border-sidebar-border/30">
+        {open && (
+          <div className="mb-3 rounded-xl bg-gradient-to-br from-sidebar-primary/10 to-purple-500/10 border border-sidebar-primary/15 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-4 w-4 text-sidebar-primary" />
+              <span className="text-xs font-semibold text-white">Pro</span>
+            </div>
+            <p className="text-[11px] text-sidebar-foreground/40 leading-relaxed mb-3">
+              Desbloquee reportes avanzados, múltiples usuarios y soporte prioritario.
+            </p>
+            <button className="w-full rounded-lg bg-sidebar-primary/20 text-sidebar-primary text-xs font-medium py-2 hover:bg-sidebar-primary/30 transition-colors">
+              Actualizar Plan
+            </button>
           </div>
-          <p className="text-[11px] text-sidebar-foreground/50 leading-relaxed">
-            Asistente IA, reportes avanzados y más
-          </p>
-        </div>
-      )}
+        )}
 
-      {/* ─── Toggle Button ─── */}
-      <button
-        onClick={onToggle}
-        className="flex h-12 items-center justify-center border-t border-sidebar-border text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent transition-all duration-200"
-      >
-        <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} />
-      </button>
+        <button
+          onClick={onToggle}
+          className="flex items-center justify-center w-full rounded-lg py-2 text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent/40 transition-colors"
+        >
+          <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} />
+        </button>
+      </div>
     </aside>
   );
 }

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, Send, User, Sparkles } from "lucide-react";
+import { Bot, Send, User, Sparkles, Paperclip, X, FileText } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
 interface Message {
@@ -66,13 +66,27 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; content: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setUploadedFile({ name: file.name, content: ev.target?.result as string });
+    };
+    reader.readAsText(file);
+    // Reset input so the same file can be re-uploaded
+    e.target.value = "";
+  };
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || loading) return;
@@ -92,6 +106,7 @@ export default function AIAssistantPage() {
             content: m.content,
           })),
           system: SYSTEM_PROMPT,
+          fileContent: uploadedFile?.content || undefined,
         }),
       });
 
@@ -102,6 +117,8 @@ export default function AIAssistantPage() {
         ...prev,
         { role: "assistant", content: data.content || "No pude generar una respuesta." },
       ]);
+      // Clear uploaded file after sending
+      setUploadedFile(null);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -195,6 +212,16 @@ export default function AIAssistantPage() {
 
         {/* Input */}
         <div className="border-t p-4">
+          {/* File attachment indicator */}
+          {uploadedFile && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2 text-sm">
+              <FileText className="h-4 w-4 text-primary" />
+              <span className="flex-1 truncate text-muted-foreground">{uploadedFile.name}</span>
+              <button onClick={() => setUploadedFile(null)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -202,6 +229,23 @@ export default function AIAssistantPage() {
             }}
             className="flex gap-2"
           >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".txt,.csv,.json,.xml,.pdf,.doc,.docx,.xls,.xlsx"
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              title="Adjuntar archivo"
+              className="flex-shrink-0"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}

@@ -1,129 +1,190 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AlertBanner } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
-import { Mail, Lock, User, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
 import { FiniTaxLogo } from "@/components/logo";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
+  const [emailSent, setEmailSent] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
     setLoading(true);
+    setError("");
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error: err } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
     });
 
-    if (error) {
-      setError(error.message);
+    if (err) {
+      setError(err.message);
       setLoading(false);
       return;
     }
 
-    // Email confirmation disabled → session exists → go to dashboard
-    if (data.session) {
+    // If user is confirmed immediately (email confirmation disabled)
+    if (data.user?.identities?.length) {
       router.push("/dashboard");
-      return;
+    } else {
+      setEmailSent(true);
     }
-
-    // Fallback: email confirmation enabled
-    setSuccess(true);
     setLoading(false);
-  };
+  }
 
-  if (success) {
+  if (emailSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <div className="max-w-sm text-center space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-            <CheckCircle2 className="h-7 w-7" />
+      <div className="min-h-screen flex items-center justify-center bg-[#050514] relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] animate-blob" />
+        <div className="relative z-10 w-full max-w-md mx-4">
+          <div className="animate-fade-in-up rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 text-center">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 mb-6">
+              <Mail className="h-8 w-8 text-emerald-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Revise su correo</h1>
+            <p className="text-sm text-white/45 mb-6">
+              Enviamos un enlace de verificación a <span className="text-white/70">{email}</span>
+            </p>
+            <Link href="/login" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
+              Volver al inicio de sesión
+            </Link>
           </div>
-          <h1 className="text-xl font-bold">¡Revisa tu Correo!</h1>
-          <p className="text-sm text-muted-foreground">
-            Enviamos un enlace de confirmación a <strong>{email}</strong>.
-          </p>
-          <Link href="/login"><Button variant="outline" className="rounded-xl mt-2">Ir a Iniciar Sesión</Button></Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-[#050514] relative overflow-hidden">
+      {/* Ambient glow effects */}
+      <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] animate-blob" />
+      <div className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/10 blur-[100px] animate-blob delay-2000" />
+
+      <div className="relative z-10 w-full max-w-md mx-4">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <Link href="/"><FiniTaxLogo size={40} textSize="text-xl" /></Link>
+        <div className="text-center mb-8 animate-fade-in-down">
+          <Link href="/" className="inline-block">
+            <FiniTaxLogo size={40} textSize="text-2xl" className="text-white justify-center" />
+          </Link>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border bg-card p-8 shadow-lg">
-          <div className="mb-6 text-center">
-            <h1 className="text-xl font-bold tracking-tight">Crear Cuenta</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Regístrate gratis en FiniTax</p>
+        <div className="animate-fade-in-up rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl shadow-black/30">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-white">Crear Cuenta</h1>
+            <p className="text-sm text-white/45 mt-2">Empiece a gestionar su contabilidad hoy</p>
           </div>
 
-          <form onSubmit={handleSignup} className="space-y-4">
-            {error && <AlertBanner variant="destructive" message={error} />}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 text-center">
+                {error}
+              </div>
+            )}
 
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-sm font-medium">Nombre</Label>
+              <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
+                Nombre Completo
+              </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="fullName" type="text" placeholder="Tu nombre" className="h-11 pl-10 rounded-xl" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
+                  placeholder="Juan García López"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Correo Electrónico</Label>
+              <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
+                Correo Electrónico
+              </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="tu@empresa.com" className="h-11 pl-10 rounded-xl" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
+                  placeholder="correo@empresa.com"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Contraseña</Label>
+              <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
+                Contraseña
+              </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="Mínimo 6 caracteres" className="h-11 pl-10 rounded-xl" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-12 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
+                  placeholder="Mínimo 6 caracteres"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-11 rounded-xl gradient-primary border-0 text-white shadow-md shadow-primary/25 hover:shadow-lg transition-all font-semibold" disabled={loading}>
-              {loading ? <Spinner size="sm" /> : <>Crear Cuenta<ArrowRight className="ml-2 h-4 w-4" /></>}
-            </Button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-xl gradient-premium py-3.5 text-sm font-semibold text-white hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/20"
+            >
+              {loading ? (
+                <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : (
+                <>
+                  Crear Cuenta
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-white/35">
+              ¿Ya tiene cuenta?{" "}
+              <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                Iniciar sesión
+              </Link>
+            </p>
+          </div>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          ¿Ya tienes cuenta?{" "}
-          <Link href="/login" className="font-semibold text-primary hover:text-primary/80 transition-colors">Inicia Sesión</Link>
+        <p className="text-center text-xs text-white/20 mt-6">
+          © {new Date().getFullYear()} FiniTax Guatemala
         </p>
       </div>
     </div>

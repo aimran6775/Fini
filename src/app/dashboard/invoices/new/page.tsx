@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertBanner } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Save, ArrowLeft, Upload, X, FileText } from "lucide-react";
 import { useOrg } from "@/components/dashboard/shell";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -47,6 +47,17 @@ export default function NewInvoicePage() {
   const [items, setItems] = useState<InvoiceItem[]>([
     { description: "", quantity: 1, unit_price: 0, discount: 0, is_exempt: false, bien_o_servicio: "B" },
   ]);
+  const [attachments, setAttachments] = useState<File[]>([]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachments((prev) => [...prev, ...files]);
+    e.target.value = "";
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const addItem = () => {
     setItems([...items, { description: "", quantity: 1, unit_price: 0, discount: 0, is_exempt: false, bien_o_servicio: "B" }]);
@@ -240,9 +251,44 @@ export default function NewInvoicePage() {
         {/* Totals & Notes */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>
-            <CardHeader><CardTitle>Notas</CardTitle></CardHeader>
-            <CardContent>
+            <CardHeader><CardTitle>Notas y Adjuntos</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
               <Textarea name="notes" placeholder="Notas opcionales para la factura..." rows={4} />
+
+              {/* File attachments */}
+              <div className="space-y-2">
+                <Label>Adjuntar Documentos</Label>
+                <div className="rounded-xl border-2 border-dashed border-border/50 p-5 text-center hover:border-primary/30 transition-colors">
+                  <input
+                    type="file"
+                    id="invoice-files"
+                    onChange={handleFileSelect}
+                    multiple
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                    className="hidden"
+                  />
+                  <label htmlFor="invoice-files" className="cursor-pointer">
+                    <Upload className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      <span className="text-primary font-medium">Seleccionar archivos</span> o arrastre aquí
+                    </p>
+                  </label>
+                </div>
+                {attachments.length > 0 && (
+                  <div className="space-y-1.5 mt-2">
+                    {attachments.map((file, i) => (
+                      <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                        <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="flex-1 truncate">{file.name}</span>
+                        <span className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)}KB</span>
+                        <button type="button" onClick={() => removeAttachment(i)} className="text-muted-foreground hover:text-destructive transition-colors">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
           <Card>

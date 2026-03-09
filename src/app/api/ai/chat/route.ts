@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 
@@ -34,29 +35,81 @@ const GUATEMALA_TAX_SYSTEM_PROMPT = `Eres FiniTax AI, un experto asesor fiscal y
 
 Responde siempre en español, de forma clara y profesional. Cita leyes y decretos cuando sea relevante.`;
 
+function buildMessages(
+  messages: { role: string; content: string }[],
+  fileContent?: string
+) {
+  return messages.map((m, i) => {
+    let content = m.content;
+    // Append file context to the last user message
+    if (fileContent && m.role === "user" && i === messages.length - 1) {
+      content += `\n\n---\n**Contenido del archivo adjunto:**\n\`\`\`\n${fileContent}\n\`\`\``;
+    }
+    return {
+      role: m.role as "user" | "assistant",
+      content,
+    };
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { messages, system } = await req.json();
+    const { messages, system, fileContent } = await req.json();
 
-    if (!process.env.ANTHROPIC_API_KEY) {
+    const hasOpenAI = !!process.env.OPENAI_API_KEY;
+    const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+
+    if (!hasOpenAI && !hasAnthropic) {
       return NextResponse.json(
-        { content: "Error: ANTHROPIC_API_KEY no está configurada. Agrégala en .env.local para habilitar el asistente IA." },
+        {
+          content:
+            "Error: No hay API keys configuradas. Agrega OPENAI_API_KEY o ANTHROPIC_API_KEY en las variables de entorno para habilitar el asistente IA.",
+        },
         { status: 200 }
       );
     }
 
-    const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
-      system: system || GUATEMALA_TAX_SYSTEM_PROMPT,
-      messages: messages.map((m: { role: string; content: string }) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      })),
-    });
+    const systemPrompt = system || GUATEMALA_TAX_SYSTEM_PROMPT;
+    const formattedMessages = buildMessages(messages, fileContent);
 
-    return NextResponse.json({ content: text });
+    // Try OpenAI first (primary), fall back to Anthropic
+    if (hasOpenAI) {
+      try {
+        const { text } = await generateText({
+          model: openai("gpt-4o"),
+          system: systemPrompt,
+          messages: formattedMessages,
+        });
+        return NextResponse.json({ content: text });
+      } catch (openaiError) {
+        console.error(
+          "OpenAI error, falling back to Anthropic:",
+          openaiError instanceof Error ? openaiError.message : openaiError
+        );
+        // Fall through to Anthropic
+      }
+    }
+
+    // Fallback: Anthropic
+    if (hasAnthropic) {
+      const { text } = await generateText({
+        model: anthropic("claude-sonnet-4-20250514"),
+        system: systemPrompt,
+        messages: formattedMessages,
+      });
+      return NextResponse.json({ content: text });
+    }
+
+    return NextResponse.json(
+      {
+        content:
+          "Error: OpenAI falló y ANTHROPIC_API_KEY no está configurada como respaldo.",
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Error al procesar la consulta";
+    const message =
+      error instanceof Error ? error.message : "Error al procesar la consulta";
     console.error("AI Chat error:", message);
     return NextResponse.json(
       { content: `Lo siento, ocurrió un error: ${message}` },

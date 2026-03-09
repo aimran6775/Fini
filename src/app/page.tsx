@@ -1,238 +1,294 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
+import { FiniTaxLogo, FiniTaxMark } from "@/components/logo";
 import {
-  Receipt, Calculator, Users, BarChart3, Bot,
-  Shield, ArrowRight, CheckCircle2, Landmark,
-  Zap, Lock, Sparkles, TrendingUp, Globe, Wrench,
-  ChevronDown,
+  FileText, BarChart3, Shield, Users, Building2, Calculator,
+  ArrowRight, ChevronDown, CheckCircle2, Zap, TrendingUp,
+  Globe2, Lock, Star,
 } from "lucide-react";
-import { FiniTaxLogo } from "@/components/logo";
 
-/* ── Verified Pexels Guatemala NATURE Videos (all 200 OK) ──── */
-const HERO_VIDEO = "https://videos.pexels.com/video-files/16679245/16679245-uhd_2560_1440_60fps.mp4";
-const CTA_VIDEO  = "https://videos.pexels.com/video-files/35224277/14923245_2560_1440_30fps.mp4";
+/* ── Pexels Guatemala Video URLs ─────────────────────────────── */
+const HERO_VIDEO = "https://videos.pexels.com/video-files/16679245/16679245-uhd_2560_1440_30fps.mp4";
+const CTA_VIDEO  = "https://videos.pexels.com/video-files/35224277/14923245/pexels-35224277-14923245-landscape-4k.mp4";
 
-/* ── Data ───────────────────────────────────────────────── */
+/* ── Data ─────────────────────────────────────────────────────── */
 const features = [
-  { icon: Receipt,    title: "Facturación FEL",    description: "FACT, FCAM, FPEQ, FCAP y notas de crédito — 10 tipos de DTE certificados por SAT al instante.",    gradient: "from-violet-500 to-indigo-600",  tag: "SAT Certificado" },
-  { icon: Calculator, title: "Motor de Impuestos", description: "ISR, IVA 12%, ISO 1% y retenciones calculadas automáticamente según tu régimen y calendario fiscal.", gradient: "from-cyan-500 to-blue-600",      tag: "Automatizado" },
-  { icon: Users,      title: "Planilla & IGSS",    description: "Nómina con IGSS 4.83%/10.67%, IRTRA, INTECAP, Aguinaldo, Bono 14 y vacaciones en segundos.",        gradient: "from-emerald-500 to-green-600",  tag: "Multi-empleado" },
-  { icon: Landmark,   title: "Contabilidad",       description: "Plan de cuentas, partidas de diario, libro mayor, estados financieros y conciliación bancaria.",     gradient: "from-amber-500 to-orange-600",   tag: "NIIF Compatible" },
-  { icon: BarChart3,  title: "Reportes",           description: "Balance general, estado de resultados, flujo de caja y presupuestos actualizados en tiempo real.",   gradient: "from-pink-500 to-rose-600",      tag: "Tiempo Real" },
-  { icon: Bot,        title: "Asistente IA",       description: "Consulta leyes tributarias guatemaltecas con IA. Respuestas con referencia legal exacta del Decreto.", gradient: "from-purple-500 to-fuchsia-600", tag: "AI Powered" },
+  { icon: FileText,   title: "Facturación FEL", desc: "Emisión de facturas electrónicas certificadas por SAT en tiempo real. DTE, facturas especiales, notas de crédito y más." },
+  { icon: Calculator, title: "Cálculo de Impuestos", desc: "IVA, ISR, ISO e IGSS calculados automáticamente según las leyes vigentes de Guatemala." },
+  { icon: BarChart3,  title: "Reportes Financieros", desc: "Balance general, estado de resultados y flujo de efectivo generados al instante." },
+  { icon: Users,      title: "Planilla & IGSS", desc: "Gestión completa de nómina con cálculo automático de IGSS patronal y laboral." },
+  { icon: Building2,  title: "Multi-Empresa", desc: "Administre múltiples organizaciones desde un solo panel con aislamiento total de datos." },
+  { icon: Shield,     title: "Seguridad Bancaria", desc: "Encriptación de nivel bancario, autenticación segura y respaldos automáticos diarios." },
 ];
 
 const taxItems = [
-  { label: "IVA 12%",          desc: "Crédito y Débito Fiscal automático en cada transacción" },
-  { label: "ISR Utilidades",   desc: "25% anual sobre utilidades — declaración automatizada" },
-  { label: "ISR Simplificado", desc: "5% / 7% trimestral según tramo de ingresos brutos" },
-  { label: "ISO 1%",           desc: "Trimestral sobre activos netos o ingresos brutos" },
-  { label: "IGSS Patronal",    desc: "10.67% + IRTRA 1% + INTECAP 1% en cada planilla" },
-  { label: "Retenciones ISR",  desc: "5% servicios, 6% bienes, 15% no domiciliados" },
-  { label: "FEL Obligatorio",  desc: "10 tipos de documento electrónico SAT" },
-  { label: "Timbre Fiscal",    desc: "3% sobre documentos no afectos al IVA" },
+  { label: "IVA (12%)", detail: "Incluido en precio, extracción automática" },
+  { label: "ISR Utilidades (25%)", detail: "Régimen sobre utilidades de actividades lucrativas" },
+  { label: "ISR Simplificado (5%/7%)", detail: "Régimen opcional simplificado sobre ingresos" },
+  { label: "ISO (1%)", detail: "Impuesto de solidaridad trimestral" },
+  { label: "IGSS Laboral (4.83%)", detail: "Cuota del trabajador" },
+  { label: "IGSS Patronal (10.67%)", detail: "Cuota del empleador" },
+  { label: "Retención ISR", detail: "Cálculo automático según tabla progresiva" },
+  { label: "Bono 14 & Aguinaldo", detail: "Provisión mensual automática" },
 ];
 
 const steps = [
-  { num: "01", icon: Globe,      title: "Crea tu Cuenta",           desc: "Regístrate gratis en segundos con solo tu correo y contraseña." },
-  { num: "02", icon: Wrench,     title: "Configura tu Empresa",     desc: "Registra tu NIT, régimen fiscal y datos de tu empresa dentro del dashboard." },
-  { num: "03", icon: TrendingUp, title: "Gestiona y Cumple",        desc: "Factura FEL, corre planilla y declara impuestos — todo automatizado." },
+  { num: "01", title: "Cree su Cuenta", desc: "Regístrese en segundos y configure su empresa con nuestro asistente inteligente." },
+  { num: "02", title: "Configure su Empresa", desc: "Ingrese su NIT, datos fiscales y personalice su plan de cuentas contable." },
+  { num: "03", title: "Empiece a Facturar", desc: "Emita facturas FEL, registre gastos y genere reportes desde el primer día." },
 ];
 
 const kpiData = [
-  { label: "Facturado (Nov)", val: "Q 128,400", sub: "+12%",        subColor: "text-indigo-400" },
-  { label: "IVA por Pagar",  val: "Q 13,726",  sub: "Vence Dic 31", subColor: "text-amber-400" },
-  { label: "Planilla Mes",   val: "Q 45,200",  sub: "8 empleados",   subColor: "text-emerald-400" },
+  { label: "Ingresos", value: "Q 847,320", change: "+12.5%", positive: true },
+  { label: "Gastos", value: "Q 234,150", change: "-3.2%", positive: true },
+  { label: "Utilidad Neta", value: "Q 613,170", change: "+18.7%", positive: true },
 ];
 
-const chartHeights = [52, 68, 44, 82, 63, 88, 70, 94, 78, 86, 58, 100];
-const chartMonths  = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+const chartHeights = [35, 45, 40, 55, 50, 65, 60, 75, 70, 85, 80, 92];
+const chartMonths = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-/* ── Reusable video background ─────────────────────────── */
-function VideoBackground({ src, overlay = "bg-black/55" }: { src: string; overlay?: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => { ref.current?.play().catch(() => {}); }, []);
+/* ── VideoBackground Component ───────────────────────────────── */
+function VideoBackground({ src, overlay = "bg-black/60", children, className = "" }: {
+  src: string; overlay?: string; children?: React.ReactNode; className?: string;
+}) {
   return (
-    <>
-      <div className="absolute inset-0 gradient-hero" />
-      <video
-        ref={ref}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${loaded ? "opacity-100" : "opacity-0"}`}
-        src={src} autoPlay muted loop playsInline preload="auto"
-        onCanPlay={() => setLoaded(true)}
-      />
+    <div className={`relative overflow-hidden ${className}`}>
+      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+        <source src={src} type="video/mp4" />
+      </video>
       <div className={`absolute inset-0 ${overlay}`} />
-      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-    </>
+      <div className="relative z-10">{children}</div>
+    </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════════
-   LANDING PAGE
-   ══════════════════════════════════════════════════════════ */
-export default function LandingPage() {
-  const [navScrolled, setNavScrolled] = useState(false);
+/* ── CountUp animation ───────────────────────────────────────── */
+function CountUp({ target, prefix = "", suffix = "" }: { target: number; prefix?: string; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          let start = 0;
+          const duration = 2000;
+          const step = (timestamp: number) => {
+            if (!start) start = timestamp;
+            const progress = Math.min((timestamp - start) / duration, 1);
+            setCount(Math.floor(progress * target));
+            if (progress < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target]);
+
+  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN PAGE
+   ═══════════════════════════════════════════════════════════════ */
+export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-
-      {/* ═══════════════ NAVIGATION ═══════════════ */}
-      <nav className="fixed top-0 z-50 w-full">
-        <div className="mx-auto max-w-7xl px-4 py-3">
-          <div className={`rounded-2xl px-5 py-3 flex items-center justify-between transition-all duration-300 ${navScrolled ? "glass-light shadow-lg shadow-black/5" : "bg-white/5 backdrop-blur-md border border-white/10"}`}>
-            <Link href="/"><FiniTaxLogo size={34} textSize="text-[17px]" className={navScrolled ? "" : "[&_span]:text-white"} /></Link>
-            <div className="hidden md:flex items-center gap-8">
-              {[{ href: "#funcionalidades", label: "Funcionalidades" }, { href: "#impuestos", label: "Impuestos" }, { href: "#como-funciona", label: "Cómo Funciona" }].map((link) => (
-                <a key={link.href} href={link.href} className={`text-sm font-medium transition-colors ${navScrolled ? "text-muted-foreground hover:text-foreground" : "text-white/70 hover:text-white"}`}>{link.label}</a>
-              ))}
-            </div>
-            <div className="flex items-center gap-3">
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className={`font-semibold rounded-xl transition-all ${navScrolled ? "text-foreground hover:bg-muted" : "text-white/90 hover:text-white hover:bg-white/10"}`}>Iniciar Sesión</Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm" className="gradient-primary border-0 text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/35 hover:scale-105 transition-all duration-200 font-semibold rounded-xl">
-                  Comenzar Gratis<ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </div>
+    <div className="min-h-screen bg-[#050514] text-white">
+      {/* ── Navigation ────────────────────────────────────────── */}
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-[#050514]/80 backdrop-blur-2xl border-b border-white/5 shadow-2xl shadow-black/20"
+          : "bg-transparent"
+      }`}>
+        <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-4">
+          <FiniTaxLogo size={34} textSize="text-xl" className="text-white" />
+          <div className="hidden md:flex items-center gap-8 text-sm">
+            <a href="#features" className="text-white/60 hover:text-white transition-colors">Funciones</a>
+            <a href="#taxes" className="text-white/60 hover:text-white transition-colors">Impuestos</a>
+            <a href="#how" className="text-white/60 hover:text-white transition-colors">Cómo Funciona</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="hidden sm:inline-flex text-sm text-white/70 hover:text-white transition-colors px-4 py-2">
+              Iniciar Sesión
+            </Link>
+            <Link href="/signup" className="inline-flex items-center gap-2 rounded-full bg-white text-[#050514] px-5 py-2.5 text-sm font-semibold hover:bg-white/90 transition-all hover:shadow-lg hover:shadow-white/10">
+              Comenzar Gratis
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </nav>
 
-      {/* ═══════════════ HERO — NATURE VIDEO ═══════════════ */}
-      <section className="relative flex flex-col items-center justify-center overflow-hidden" style={{ minHeight: "100vh" }}>
-        <VideoBackground src={HERO_VIDEO} overlay="bg-black/50" />
-        <div className="relative z-10 mx-auto max-w-5xl px-4 text-center pt-28 pb-12">
-          <div className="animate-fade-in-down inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm px-5 py-2.5 text-xs font-medium text-white/80 mb-10 shadow-lg shadow-black/10">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Hecho exclusivamente para Guatemala · SAT FEL Certificado
+      {/* ── Hero ──────────────────────────────────────────────── */}
+      <VideoBackground src={HERO_VIDEO} overlay="bg-gradient-to-b from-[#050514]/70 via-[#050514]/50 to-[#050514]" className="min-h-screen flex items-center">
+        <div className="mx-auto max-w-7xl px-6 pt-32 pb-20">
+          <div className="max-w-3xl">
+            {/* Badge */}
+            <div className="animate-fade-in-down inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-white/80 mb-8">
+              <Zap className="h-3.5 w-3.5 text-amber-400" />
+              Plataforma #1 de Contabilidad en Guatemala
+            </div>
+
+            <h1 className="animate-fade-in-up text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+              Contabilidad{" "}
+              <span className="gradient-text">Inteligente</span>
+              <br />para Guatemala
+            </h1>
+
+            <p className="animate-fade-in-up delay-200 mt-6 text-lg sm:text-xl text-white/60 max-w-xl leading-relaxed">
+              Facturación FEL, impuestos, planilla e IGSS — todo automatizado
+              en una plataforma premium diseñada para empresas guatemaltecas.
+            </p>
+
+            <div className="animate-fade-in-up delay-300 mt-10 flex flex-wrap items-center gap-4">
+              <Link href="/signup" className="group inline-flex items-center gap-2 rounded-full gradient-premium px-8 py-4 text-base font-semibold text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:scale-[1.02]">
+                Empezar Gratis
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <a href="#features" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm px-6 py-4 text-sm font-medium text-white/80 hover:bg-white/10 transition-all">
+                Ver Funciones
+              </a>
+            </div>
+
+            {/* Trust badges */}
+            <div className="animate-fade-in-up delay-500 mt-12 flex flex-wrap items-center gap-6 text-xs text-white/40">
+              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Encriptación SSL</div>
+              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Certificado SAT</div>
+              <div className="flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5" /> Hecho en Guatemala</div>
+            </div>
           </div>
-          <h1 className="animate-fade-in-up text-5xl sm:text-6xl md:text-[80px] font-black tracking-tight text-white leading-[1.04] mb-7">
-            Gestión Fiscal<br />
-            <span className="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">Hecha para Guatemala</span>
-          </h1>
-          <p className="animate-fade-in-up text-lg sm:text-xl text-white/65 max-w-2xl mx-auto leading-relaxed mb-12" style={{ animationDelay: "0.15s" }}>
-            Facturación FEL, planilla IGSS, ISR · IVA · ISO y contabilidad completa — la plataforma que entiende la legislación de SAT.
-          </p>
-          <div className="animate-fade-in-up flex flex-wrap justify-center gap-4 mb-6" style={{ animationDelay: "0.28s" }}>
-            <Link href="/signup">
-              <Button size="lg" className="h-14 px-10 text-base gradient-primary border-0 text-white shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 hover:scale-[1.04] transition-all duration-300 font-semibold rounded-xl">
-                Crear Cuenta Gratis<ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="h-14 px-10 text-base border-white/20 text-white bg-white/10 hover:bg-white/20 hover:text-white hover:border-white/30 transition-all duration-300 rounded-xl backdrop-blur-sm">Iniciar Sesión</Button>
-            </Link>
-          </div>
-          <div className="animate-fade-in flex flex-wrap justify-center gap-x-8 gap-y-2 text-xs text-white/40" style={{ animationDelay: "0.45s" }}>
-            <span>✓ Sin tarjeta de crédito</span><span>✓ Configuración en 5 min</span><span>✓ Soporte en español</span><span>✓ 100% en Quetzales</span>
+
+          {/* Scroll hint */}
+          <div className="mt-16 flex justify-center">
+            <ChevronDown className="h-6 w-6 text-white/30 animate-scroll-hint" />
           </div>
         </div>
+      </VideoBackground>
 
-        {/* Dashboard Mockup */}
-        <div className="animate-fade-in-up relative z-10 w-full max-w-3xl px-6 -mb-24" style={{ animationDelay: "0.38s" }}>
-          <div className="absolute inset-x-8 bottom-0 top-4 rounded-3xl blur-3xl" style={{ background: "rgba(79,70,229,0.22)" }} />
-          <div className="relative rounded-2xl border border-white/10 overflow-hidden shadow-2xl" style={{ background: "rgba(11,11,24,0.9)", backdropFilter: "blur(24px)", boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5" style={{ background: "rgba(255,255,255,0.025)" }}>
-              <div className="flex gap-1.5">
-                <div className="h-2.5 w-2.5 rounded-full" style={{ background: "rgba(239,68,68,0.5)" }} />
-                <div className="h-2.5 w-2.5 rounded-full" style={{ background: "rgba(234,179,8,0.5)" }} />
-                <div className="h-2.5 w-2.5 rounded-full" style={{ background: "rgba(34,197,94,0.5)" }} />
-              </div>
-              <div className="mx-auto flex items-center gap-1.5 h-6 w-56 rounded-lg px-3" style={{ background: "rgba(255,255,255,0.05)" }}>
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: "rgba(52,211,153,0.7)" }} />
-                <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>app.finitax.gt/dashboard</span>
-              </div>
+      {/* ── Dashboard Mockup ─────────────────────────────────── */}
+      <section className="relative -mt-32 z-10 mx-auto max-w-6xl px-6 pb-24">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] backdrop-blur-xl p-1 shadow-2xl shadow-black/40">
+          <div className="rounded-xl bg-[#0a0a1a] p-6">
+            {/* KPI row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              {kpiData.map((kpi, i) => (
+                <div key={i} className="rounded-xl bg-white/[0.04] border border-white/5 p-4 hover:border-white/10 transition-colors">
+                  <p className="text-xs text-white/40 mb-1">{kpi.label}</p>
+                  <p className="text-xl font-bold text-white">{kpi.value}</p>
+                  <span className={`text-xs font-medium ${kpi.positive ? "text-emerald-400" : "text-red-400"}`}>
+                    {kpi.change}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="p-5">
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {kpiData.map((k, i) => (
-                  <div key={i} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <p className="text-[11px] mb-1.5" style={{ color: "rgba(255,255,255,0.35)" }}>{k.label}</p>
-                    <p className="text-white font-bold text-sm">{k.val}</p>
-                    <p className={`text-[11px] mt-1 font-medium ${k.subColor}`}>{k.sub}</p>
+            {/* Mini chart */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4">
+              <p className="text-xs text-white/40 mb-4">Ingresos Mensuales 2024</p>
+              <div className="flex items-end gap-1.5 h-24">
+                {chartHeights.map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className="w-full rounded-sm bg-gradient-to-t from-indigo-500 to-purple-500 opacity-80 hover:opacity-100 transition-opacity"
+                      style={{ height: `${h}%` }}
+                    />
+                    <span className="text-[9px] text-white/30">{chartMonths[i]}</span>
                   </div>
                 ))}
               </div>
-              <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs font-medium tracking-wide uppercase" style={{ color: "rgba(255,255,255,0.4)" }}>Ingresos 2025</p>
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400"><TrendingUp className="h-3 w-3" />+18.4% vs 2024</div>
-                </div>
-                <div className="flex items-end gap-[5px] h-[60px]">
-                  {chartHeights.map((h, i) => (
-                    <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 11 ? "linear-gradient(to top, #6366f1, #a78bfa)" : "linear-gradient(to top, rgba(99,102,241,0.55), rgba(139,92,246,0.28))" }} />
-                  ))}
-                </div>
-                <div className="flex justify-between mt-2">
-                  {chartMonths.map((m, i) => (
-                    <span key={i} className="flex-1 text-center text-[9px]" style={{ color: i === 11 ? "#818cf8" : "rgba(255,255,255,0.18)", fontWeight: i === 11 ? 700 : 400 }}>{m}</span>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
-        <div className="relative z-10 mt-28 mb-8 flex flex-col items-center animate-scroll-hint"><ChevronDown className="h-5 w-5 text-white/30" /></div>
       </section>
 
-      <div className="h-12 bg-background" />
-
-      {/* ═══════════════ FEATURES ═══════════════ */}
-      <section id="funcionalidades" className="py-28 px-4">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary mb-4"><Sparkles className="h-3.5 w-3.5" />Funcionalidades</div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4">Cada Herramienta que tu Empresa{" "}<span className="gradient-text">Necesita en Guatemala</span></h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Diseñado específicamente para la legislación fiscal guatemalteca — de la primera factura hasta la declaración anual.</p>
+      {/* ── Features ──────────────────────────────────────────── */}
+      <section id="features" className="relative py-28">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/[0.03] to-transparent" />
+        <div className="relative mx-auto max-w-7xl px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">Funciones Premium</p>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+              Todo lo que su empresa <span className="gradient-text">necesita</span>
+            </h2>
+            <p className="mt-4 text-white/50 text-lg">
+              Una suite completa de herramientas financieras, diseñada específicamente para el mercado guatemalteco.
+            </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((f) => (
-              <div key={f.title} className="group relative rounded-2xl border bg-card p-7 hover-lift card-shine overflow-hidden cursor-default">
-                <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-[0.04] transition-opacity duration-500`} />
-                <div className="relative">
-                  <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground mb-5 tracking-wide">{f.tag}</span>
-                  <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${f.gradient} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}><f.icon className="h-6 w-6" /></div>
-                  <h3 className="text-lg font-bold mb-2">{f.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
-                  <div className="mt-5 flex items-center text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">Explorar <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, i) => (
+              <div key={i} className="group rounded-2xl border border-white/5 bg-white/[0.02] p-7 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-500 card-shine">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+                  <f.icon className="h-6 w-6" />
                 </div>
+                <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
+                <p className="text-sm text-white/45 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ TAX COMPLIANCE ═══════════════ */}
-      <section id="impuestos" className="py-28 px-4 bg-muted/40">
-        <div className="mx-auto max-w-7xl">
+      {/* ── Stats Bar ─────────────────────────────────────────── */}
+      <section className="border-y border-white/5 py-16">
+        <div className="mx-auto max-w-5xl px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { value: 2500, suffix: "+", label: "Empresas Activas" },
+            { value: 150000, suffix: "+", label: "Facturas Emitidas" },
+            { value: 99, suffix: ".9%", label: "Uptime" },
+            { value: 24, suffix: "/7", label: "Soporte" },
+          ].map((s, i) => (
+            <div key={i}>
+              <p className="text-3xl sm:text-4xl font-bold gradient-text">
+                <CountUp target={s.value} suffix={s.suffix} />
+              </p>
+              <p className="mt-1 text-sm text-white/40">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Tax Compliance ────────────────────────────────────── */}
+      <section id="taxes" className="py-28">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div className="lg:sticky lg:top-28">
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-700 mb-5"><Shield className="h-3.5 w-3.5" />Cumplimiento SAT</div>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-5">100% Alineado con la{" "}<span className="gradient-text">Legislación Guatemalteca</span></h2>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">Cada tasa, cada régimen y cada fecha límite — actualizado automáticamente según SAT, IGSS y BANGUAT.</p>
-              <Link href="/signup"><Button size="lg" className="gradient-primary border-0 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:scale-[1.03] transition-all font-semibold rounded-xl">Automatizar mi Cumplimiento<ArrowRight className="ml-2 h-5 w-5" /></Button></Link>
-              <div className="mt-10 grid grid-cols-2 gap-3">
-                {[{ val: "12+", label: "Tipos de impuesto" }, { val: "10", label: "Documentos FEL" }, { val: "100%", label: "Cumplimiento SAT" }, { val: "24/7", label: "Asistente IA" }].map((s, i) => (
-                  <div key={i} className="rounded-xl border bg-card p-4"><p className="text-2xl font-black">{s.val}</p><p className="text-xs text-muted-foreground mt-0.5">{s.label}</p></div>
-                ))}
+            <div className="lg:sticky lg:top-32">
+              <p className="text-sm font-semibold text-emerald-400 uppercase tracking-widest mb-3">Cumplimiento Fiscal</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                Todos los impuestos de <span className="gradient-text">Guatemala</span>
+              </h2>
+              <p className="mt-4 text-white/50 text-lg leading-relaxed">
+                Cálculos automáticos y actualizados según las leyes tributarias vigentes de la SAT. Sin errores, sin multas.
+              </p>
+              <div className="mt-8 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                </div>
+                <p className="text-sm text-white/60">Actualizado con las leyes tributarias 2024-2025</p>
               </div>
             </div>
             <div className="space-y-3">
               {taxItems.map((item, i) => (
-                <div key={i} className="flex items-start gap-4 rounded-xl border bg-card p-4 hover:border-primary/20 hover:shadow-md transition-all duration-300">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 flex-shrink-0 mt-0.5"><CheckCircle2 className="h-[18px] w-[18px] text-emerald-600" /></div>
-                  <div><p className="font-semibold text-sm">{item.label}</p><p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p></div>
+                <div key={i} className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-5 hover:border-emerald-500/20 hover:bg-white/[0.04] transition-all">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-bold group-hover:bg-emerald-500/20 transition-colors">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">{item.label}</p>
+                    <p className="text-xs text-white/40">{item.detail}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -240,78 +296,68 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-      <section id="como-funciona" className="py-28 px-4">
-        <div className="mx-auto max-w-5xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary mb-5"><Zap className="h-3.5 w-3.5" />Cómo Funciona</div>
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-16">De Cero a Facturando en{" "}<span className="gradient-text">3 Pasos</span></h2>
-          <div className="grid sm:grid-cols-3 gap-8 relative">
-            <div className="hidden sm:block absolute top-10 left-[calc(16.5%+2.5rem)] right-[calc(16.5%+2.5rem)] h-px bg-gradient-to-r from-primary/20 via-primary/50 to-primary/20" />
-            {steps.map((s, i) => (
-              <div key={i} className="flex flex-col items-center text-center">
-                <div className="relative mb-6">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-card border-2 border-primary/15 shadow-lg hover:border-primary/35 transition-all"><s.icon className="h-9 w-9 text-primary" /></div>
-                  <span className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full gradient-primary text-white text-xs font-black shadow-md">{s.num}</span>
+      {/* ── How It Works ──────────────────────────────────────── */}
+      <section id="how" className="py-28">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <p className="text-sm font-semibold text-amber-400 uppercase tracking-widest mb-3">Cómo Funciona</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              Listo en <span className="gradient-text-gold">3 pasos</span>
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {steps.map((step, i) => (
+              <div key={i} className="relative text-center">
+                <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10">
+                  <span className="text-2xl font-bold gradient-text">{step.num}</span>
                 </div>
-                <h3 className="text-lg font-bold mb-2">{s.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{s.desc}</p>
+                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                <p className="text-sm text-white/45 leading-relaxed">{step.desc}</p>
+                {i < 2 && (
+                  <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] border-t border-dashed border-white/10" />
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ FINAL CTA — NATURE VIDEO ═══════════════ */}
-      <section className="relative py-32 px-4 overflow-hidden">
-        <VideoBackground src={CTA_VIDEO} overlay="bg-black/60" />
-        <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm px-4 py-2 text-sm mb-8 text-white/60"><Sparkles className="h-3.5 w-3.5" />Comienza hoy — es gratis</div>
-          <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-6">Tu Empresa. Tu Fiscalidad.{" "}<span className="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">Bajo Control.</span></h2>
-          <p className="text-lg max-w-xl mx-auto mb-10 leading-relaxed text-white/50">Únete a empresas guatemaltecas que ya gestionan su contabilidad e impuestos con FiniTax.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/signup"><Button size="lg" className="h-14 px-10 text-base bg-white text-[#06060f] hover:bg-white/92 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.04] transition-all duration-300 rounded-xl">Crear Cuenta Gratis<ArrowRight className="ml-2 h-5 w-5" /></Button></Link>
-            <Link href="/login"><Button size="lg" variant="outline" className="h-14 px-10 text-base border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white transition-all rounded-xl">Ya Tengo Cuenta</Button></Link>
+      {/* ── CTA ───────────────────────────────────────────────── */}
+      <VideoBackground src={CTA_VIDEO} overlay="bg-[#050514]/70" className="py-28">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-white/70 mb-6">
+            <Star className="h-3.5 w-3.5 text-amber-400" />
+            Únase a miles de empresas guatemaltecas
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+            Lleve su contabilidad al{" "}
+            <span className="gradient-text">siguiente nivel</span>
+          </h2>
+          <p className="mt-5 text-lg text-white/50 max-w-xl mx-auto">
+            Empiece hoy y descubra por qué FiniTax es la plataforma preferida de los contadores guatemaltecos.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link href="/signup" className="group inline-flex items-center gap-2 rounded-full bg-white text-[#050514] px-8 py-4 text-base font-semibold hover:bg-white/90 transition-all hover:shadow-xl hover:shadow-white/10 hover:scale-[1.02]">
+              Crear Cuenta Gratis
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link href="/login" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-medium text-white/80 hover:bg-white/10 transition-all">
+              Iniciar Sesión
+            </Link>
           </div>
         </div>
-      </section>
+      </VideoBackground>
 
-      {/* ═══════════════ FOOTER ═══════════════ */}
-      <footer className="border-t bg-card py-16 px-4">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-            <div className="md:col-span-1">
-              <FiniTaxLogo size={34} textSize="text-[17px]" className="mb-4" />
-              <p className="text-sm text-muted-foreground leading-relaxed">Contabilidad e impuestos para empresas guatemaltecas. Cumplimiento SAT garantizado.</p>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Producto</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><a href="#funcionalidades" className="hover:text-foreground transition-colors">Facturación FEL</a></li>
-                <li><a href="#funcionalidades" className="hover:text-foreground transition-colors">Contabilidad</a></li>
-                <li><a href="#funcionalidades" className="hover:text-foreground transition-colors">Planilla IGSS</a></li>
-                <li><a href="#funcionalidades" className="hover:text-foreground transition-colors">Asistente IA</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Impuestos</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><a href="#impuestos" className="hover:text-foreground transition-colors">ISR / IVA / ISO</a></li>
-                <li><a href="#impuestos" className="hover:text-foreground transition-colors">IGSS / IRTRA</a></li>
-                <li><a href="#impuestos" className="hover:text-foreground transition-colors">FEL Electrónico</a></li>
-                <li><a href="#impuestos" className="hover:text-foreground transition-colors">Reportes SAT</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Cuenta</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><Link href="/signup" className="hover:text-foreground transition-colors">Registrarse Gratis</Link></li>
-                <li><Link href="/login" className="hover:text-foreground transition-colors">Iniciar Sesión</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} FiniTax Guatemala. Todos los derechos reservados.</p>
-            <p className="flex items-center gap-2"><Lock className="h-3.5 w-3.5" />Cumplimiento SAT · FEL Certificado · Datos Encriptados</p>
+      {/* ── Footer ────────────────────────────────────────────── */}
+      <footer className="border-t border-white/5 py-12">
+        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
+          <p className="text-xs text-white/30">
+            © {new Date().getFullYear()} FiniTax Guatemala. Todos los derechos reservados.
+          </p>
+          <div className="flex gap-6 text-xs text-white/30">
+            <a href="#" className="hover:text-white/60 transition-colors">Privacidad</a>
+            <a href="#" className="hover:text-white/60 transition-colors">Términos</a>
           </div>
         </div>
       </footer>

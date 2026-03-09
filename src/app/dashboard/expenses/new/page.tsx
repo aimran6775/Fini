@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { AlertBanner } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { useOrg } from "@/components/dashboard/shell";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, Upload, X, FileText } from "lucide-react";
 import Link from "next/link";
 
 const categories = [
@@ -27,6 +27,17 @@ export default function NewExpensePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [taxDeductible, setTaxDeductible] = useState(true);
+  const [attachments, setAttachments] = useState<File[]>([]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachments((prev) => [...prev, ...files]);
+    e.target.value = "";
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -104,6 +115,44 @@ export default function NewExpensePage() {
             <div className="space-y-2">
               <Label htmlFor="notes">Notas</Label>
               <Textarea id="notes" name="notes" placeholder="Notas opcionales..." rows={3} />
+            </div>
+
+            {/* File attachments */}
+            <div className="space-y-2">
+              <Label>Adjuntar Documentos</Label>
+              <div className="rounded-xl border-2 border-dashed border-border/50 p-6 text-center hover:border-primary/30 transition-colors">
+                <input
+                  type="file"
+                  id="expense-files"
+                  onChange={handleFileSelect}
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  className="hidden"
+                />
+                <label htmlFor="expense-files" className="cursor-pointer">
+                  <Upload className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Arrastre archivos o <span className="text-primary font-medium">seleccione</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground/50 mt-1">
+                    Imágenes, PDF, Word, Excel — máx 10MB
+                  </p>
+                </label>
+              </div>
+              {attachments.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  {attachments.map((file, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                      <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="flex-1 truncate">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)}KB</span>
+                      <button type="button" onClick={() => removeAttachment(i)} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
