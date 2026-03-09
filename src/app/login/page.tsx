@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -9,16 +9,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertBanner } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
-import { FiniTaxLogo, FiniTaxMark } from "@/components/logo";
+import { Mail, Lock, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { FiniTaxLogo } from "@/components/logo";
+
+/* Verified Pexels: Antigua Guatemala street scene */
+const VIDEO_SRC = "https://videos.pexels.com/video-files/12901622/12901622-uhd_2560_1440_24fps.mp4";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {});
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,25 +52,39 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* ─── Left: Visual Panel ─── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: '#06060f' }}>
-        {/* Animated gradient orbs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-blob absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full blur-[120px]" style={{ background: 'rgba(79,70,229,0.35)' }} />
-          <div className="animate-blob delay-2000 absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full blur-[100px]" style={{ background: 'rgba(124,58,237,0.28)' }} />
-          <div className="animate-blob delay-4000 absolute top-1/2 left-1/4 h-[300px] w-[300px] rounded-full blur-[80px]" style={{ background: 'rgba(16,185,129,0.18)' }} />
-        </div>
-        {/* Grid overlay */}
-        <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
+
+      {/* ─── Left: Guatemala Video Panel ─── */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Gradient fallback */}
+        <div className="absolute inset-0 gradient-hero" />
+        {/* Video */}
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
+          src={VIDEO_SRC}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onCanPlay={() => setVideoLoaded(true)}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/45" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+          }}
+        />
 
         {/* Content overlay */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          {/* Logo */}
           <Link href="/">
-            <FiniTaxLogo size={38} textSize="text-xl" />
+            <FiniTaxLogo size={38} textSize="text-xl" className="[&_span]:text-white" />
           </Link>
 
-          {/* Quote / Info */}
           <div className="max-w-md">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-px w-12 bg-white/30" />
@@ -74,9 +97,21 @@ export default function LoginPage() {
             <p className="text-white/60 leading-relaxed">
               Facturación FEL, impuestos ISR/IVA/ISO, planilla con IGSS y contabilidad completa — todo en un solo lugar.
             </p>
+
+            <div className="mt-8 space-y-3">
+              {[
+                "10 tipos de DTE FEL certificados por SAT",
+                "ISR, IVA, ISO calculados automáticamente",
+                "Planilla con IGSS, IRTRA e INTECAP",
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm text-white/80">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Bottom stats */}
           <div className="flex items-center gap-6 text-sm text-white/50">
             <span>© {new Date().getFullYear()} FiniTax</span>
             <span>Cumplimiento SAT 100%</span>
@@ -86,7 +121,6 @@ export default function LoginPage() {
 
       {/* ─── Right: Login Form ─── */}
       <div className="flex w-full lg:w-1/2 flex-col">
-        {/* Top bar */}
         <div className="flex items-center justify-between p-6">
           <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
             <ArrowLeft className="h-4 w-4" />
@@ -97,10 +131,8 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Form centered */}
         <div className="flex flex-1 items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm">
-            {/* Mobile logo */}
             <div className="lg:hidden mb-8">
               <FiniTaxLogo size={36} textSize="text-xl" />
             </div>

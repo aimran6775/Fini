@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -9,8 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertBanner } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import {
+  Mail, Lock, User, ArrowRight, ArrowLeft,
+  CheckCircle2, ShieldCheck,
+} from "lucide-react";
 import { FiniTaxLogo } from "@/components/logo";
+
+/* Verified Pexels: Guatemala church bell towers */
+const VIDEO_SRC = "https://videos.pexels.com/video-files/13830622/13830622-hd_1920_1080_30fps.mp4";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -18,10 +24,16 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    videoRef.current?.play().catch(() => {});
+  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +43,6 @@ export default function SignupPage() {
       setError("Las contraseñas no coinciden");
       return;
     }
-
     if (password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres");
       return;
@@ -42,9 +53,7 @@ export default function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName },
-      },
+      options: { data: { full_name: fullName } },
     });
 
     if (error) {
@@ -53,32 +62,32 @@ export default function SignupPage() {
       return;
     }
 
-    // If session exists, email confirmation is disabled — go directly to onboarding
+    // Email confirmation disabled → session exists immediately
     if (data.session) {
       router.push("/onboarding");
       return;
     }
 
-    // Email confirmation enabled — show success screen
+    // Fallback: email confirmation is enabled
     setSuccess(true);
     setLoading(false);
   };
 
+  /* ─── Success: check-email screen ─── */
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 bg-muted/30">
-        <div className="w-full max-w-md text-center animate-scale-in">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-jade/10">
-            <CheckCircle2 className="h-10 w-10 text-jade" />
+      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
+        <div className="max-w-md text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <CheckCircle2 className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight mb-2">¡Cuenta Creada!</h1>
-          <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
-            Revisa tu correo electrónico para confirmar tu cuenta. Luego podrás iniciar sesión y configurar tu empresa.
+          <h1 className="text-2xl font-bold">¡Revisa tu Correo!</h1>
+          <p className="text-muted-foreground">
+            Enviamos un enlace de confirmación a <strong>{email}</strong>. Haz clic en él para activar tu cuenta.
           </p>
           <Link href="/login">
-            <Button className="h-12 px-8 rounded-xl gradient-primary border-0 text-white shadow-md shadow-primary/25">
+            <Button variant="outline" className="rounded-xl mt-4">
               Ir a Iniciar Sesión
-              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -88,42 +97,60 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* ─── Left: Visual Panel ─── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: '#06060f' }}>
-        {/* Animated orbs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-blob absolute -top-32 -right-20 h-[500px] w-[500px] rounded-full blur-[120px]" style={{ background: 'rgba(16,185,129,0.28)' }} />
-          <div className="animate-blob delay-2000 absolute bottom-0 -left-20 h-[400px] w-[400px] rounded-full blur-[100px]" style={{ background: 'rgba(79,70,229,0.28)' }} />
-          <div className="animate-blob delay-4000 absolute top-1/3 right-1/3 h-[300px] w-[300px] rounded-full blur-[80px]" style={{ background: 'rgba(20,184,166,0.2)' }} />
-        </div>
-        <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)', backgroundSize: '56px 56px' }} />
 
+      {/* ─── Left: Guatemala Video Panel ─── */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Gradient fallback */}
+        <div className="absolute inset-0 gradient-hero" />
+        {/* Video */}
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
+          src={VIDEO_SRC}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onCanPlay={() => setVideoLoaded(true)}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/45" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+          }}
+        />
+
+        {/* Content overlay */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <Link href="/">
-            <FiniTaxLogo size={38} textSize="text-xl" />
+            <FiniTaxLogo size={38} textSize="text-xl" className="[&_span]:text-white" />
           </Link>
 
           <div className="max-w-md">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-px w-12 bg-white/30" />
-              <span className="text-sm font-medium text-white/70 uppercase tracking-widest">Crea tu Cuenta</span>
+              <span className="text-sm font-medium text-white/70 uppercase tracking-widest">Crear Cuenta</span>
             </div>
             <h2 className="text-4xl font-extrabold leading-tight mb-4">
-              Comienza a{" "}
-              <span className="text-emerald-300">Facturar Hoy.</span>
+              Empieza a gestionar tus impuestos{" "}
+              <span className="text-cyan-300">hoy mismo.</span>
             </h2>
             <p className="text-white/60 leading-relaxed">
-              Únete a miles de empresas guatemaltecas que gestionan su contabilidad, impuestos y planilla con FiniTax.
+              Únete a cientos de negocios guatemaltecos que ya confían en FiniTax para su facturación, contabilidad e impuestos.
             </p>
 
             <div className="mt-8 space-y-3">
               {[
-                "Facturación FEL certificada por SAT",
-                "ISR, IVA, ISO automáticos",
-                "Planilla con IGSS, IRTRA e INTECAP",
+                "Sin costo para empezar — prueba gratis",
+                "Cumplimiento automático con SAT y FEL",
+                "Soporte para múltiples organizaciones",
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm text-white/80">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                  <ShieldCheck className="h-4 w-4 text-emerald-400 flex-shrink-0" />
                   {item}
                 </div>
               ))}
@@ -132,7 +159,7 @@ export default function SignupPage() {
 
           <div className="flex items-center gap-6 text-sm text-white/50">
             <span>© {new Date().getFullYear()} FiniTax</span>
-            <span>100% Cumplimiento SAT</span>
+            <span>Guatemala</span>
           </div>
         </div>
       </div>
@@ -145,31 +172,32 @@ export default function SignupPage() {
             Volver al Inicio
           </Link>
           <Link href="/login" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-            Ya Tengo Cuenta
+            Ya tengo cuenta
           </Link>
         </div>
 
         <div className="flex flex-1 items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm">
-            {/* Mobile logo */}
             <div className="lg:hidden mb-8">
               <FiniTaxLogo size={36} textSize="text-xl" />
             </div>
 
             <div className="mb-8">
-              <h1 className="text-2xl font-extrabold tracking-tight">Crear Cuenta</h1>
-              <p className="mt-2 text-muted-foreground">Registra tu cuenta en FiniTax Guatemala</p>
+              <h1 className="text-2xl font-extrabold tracking-tight">Crear Tu Cuenta</h1>
+              <p className="mt-2 text-muted-foreground">Regístrate gratis y configura tu organización</p>
             </div>
 
             <form onSubmit={handleSignup} className="space-y-4">
               {error && <AlertBanner variant="destructive" message={error} />}
 
+              {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-medium">Nombre Completo</Label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="fullName"
+                    type="text"
                     placeholder="Juan Pérez"
                     className="h-12 pl-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors"
                     value={fullName}
@@ -179,6 +207,7 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">Correo Electrónico</Label>
                 <div className="relative">
@@ -195,6 +224,7 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">Contraseña</Label>
                 <div className="relative">
@@ -207,10 +237,12 @@ export default function SignupPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
               </div>
 
+              {/* Confirm password */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirmar Contraseña</Label>
                 <div className="relative">
@@ -218,11 +250,12 @@ export default function SignupPage() {
                   <Input
                     id="confirmPassword"
                     type="password"
-                    placeholder="Repite tu contraseña"
+                    placeholder="Repetir contraseña"
                     className="h-12 pl-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
               </div>
@@ -236,14 +269,20 @@ export default function SignupPage() {
                   <Spinner size="sm" />
                 ) : (
                   <>
-                    Crear mi Cuenta
+                    Crear Cuenta
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
             </form>
 
-            <p className="mt-8 text-center text-sm text-muted-foreground">
+            <p className="mt-6 text-center text-xs text-muted-foreground leading-relaxed">
+              Al registrarte aceptas los{" "}
+              <span className="underline cursor-pointer">Términos de Servicio</span> y la{" "}
+              <span className="underline cursor-pointer">Política de Privacidad</span>.
+            </p>
+
+            <p className="mt-4 text-center text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
               <Link href="/login" className="font-semibold text-primary hover:text-primary/80 transition-colors">
                 Inicia Sesión
