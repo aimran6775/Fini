@@ -39,7 +39,7 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -53,6 +53,13 @@ export default function SignupPage() {
       return;
     }
 
+    // If session exists, email confirmation is disabled — go directly to onboarding
+    if (data.session) {
+      router.push("/onboarding");
+      return;
+    }
+
+    // Email confirmation enabled — show success screen
     setSuccess(true);
     setLoading(false);
   };

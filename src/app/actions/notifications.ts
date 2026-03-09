@@ -16,8 +16,8 @@ export async function getNotifications() {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  if (error) throw error;
-  return data;
+  if (error) return [];
+  return data ?? [];
 }
 
 export async function getUnreadCount() {

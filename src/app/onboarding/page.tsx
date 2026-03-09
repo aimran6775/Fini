@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createOrganization } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,13 +23,21 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError(null);
-    const result = await createOrganization(formData);
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const result = await createOrganization(formData);
+      if (result?.error) {
+        setError(result.error);
+        setLoading(false);
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Ocurrió un error inesperado. Por favor intenta de nuevo.");
       setLoading(false);
     }
   };

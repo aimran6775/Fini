@@ -37,7 +37,7 @@ export async function createOrganization(formData: FormData) {
   }
 
   revalidatePath("/dashboard");
-  redirect("/dashboard");
+  return { success: true };
 }
 
 export async function signOut() {
