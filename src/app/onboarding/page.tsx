@@ -34,19 +34,19 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-8">
-      <Card className="w-full max-w-lg">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-white">
-            <Building2 className="h-7 w-7" />
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-8">
+      <Card className="w-full max-w-lg rounded-2xl border-border/60 shadow-xl shadow-black/5">
+        <CardHeader className="text-center pb-4">
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary text-white shadow-lg shadow-primary/25">
+            <Building2 className="h-8 w-8" />
           </div>
-          <CardTitle className="text-2xl">Configurar Empresa</CardTitle>
+          <CardTitle className="text-2xl font-extrabold tracking-tight">Configurar Empresa</CardTitle>
           <CardDescription>
             Paso {step} de 3 — {step === 1 ? "Datos Generales" : step === 2 ? "Régimen Fiscal" : "Ubicación"}
           </CardDescription>
-          <div className="mt-3 flex gap-1 justify-center">
+          <div className="mt-4 flex gap-2 justify-center">
             {[1, 2, 3].map((s) => (
-              <div key={s} className={`h-1.5 w-12 rounded-full ${s <= step ? "bg-primary" : "bg-muted"}`} />
+              <div key={s} className={`h-2 w-16 rounded-full transition-all duration-300 ${s <= step ? "gradient-primary" : "bg-muted"}`} />
             ))}
           </div>
         </CardHeader>
@@ -132,18 +132,18 @@ export default function OnboardingPage() {
               </>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-4">
               {step > 1 && (
-                <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
+                <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1 rounded-xl h-11">
                   <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
                 </Button>
               )}
               {step < 3 ? (
-                <Button type="button" onClick={() => setStep(step + 1)} className="flex-1">
+                <Button type="button" onClick={() => setStep(step + 1)} className="flex-1 rounded-xl h-11 gradient-primary border-0 text-white shadow-md shadow-primary/25">
                   Siguiente <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={loading} className="flex-1">
+                <Button type="submit" disabled={loading} className="flex-1 rounded-xl h-11 gradient-primary border-0 text-white shadow-md shadow-primary/25">
                   {loading ? <Spinner size="sm" /> : <>Crear Empresa <ArrowRight className="ml-2 h-4 w-4" /></>}
                 </Button>
               )}

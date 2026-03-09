@@ -7,10 +7,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertBanner } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, ArrowLeft, Building2 } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -28,9 +27,10 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message === "Invalid login credentials"
-        ? "Correo o contraseña incorrectos"
-        : error.message
+      setError(
+        error.message === "Invalid login credentials"
+          ? "Correo o contraseña incorrectos"
+          : error.message
       );
       setLoading(false);
       return;
@@ -41,62 +41,150 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white font-bold text-xl">
-            F
+    <div className="flex min-h-screen">
+      {/* ─── Left: Visual Panel ─── */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Background Video / Image */}
+        <div className="absolute inset-0">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          >
+            <source src="https://videos.pexels.com/video-files/4065924/4065924-uhd_2560_1440_30fps.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-indigo-900/70 to-black/60" />
+          <div className="absolute inset-0 dot-pattern opacity-20" />
+        </div>
+
+        {/* Content overlay */}
+        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm font-bold text-lg border border-white/20">
+              F
+            </div>
+            <span className="text-xl font-bold">
+              FiniTax <span className="text-white/60 text-sm font-normal">Guatemala</span>
+            </span>
+          </Link>
+
+          {/* Quote / Info */}
+          <div className="max-w-md">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-px w-12 bg-white/30" />
+              <span className="text-sm font-medium text-white/70 uppercase tracking-widest">Plataforma Fiscal</span>
+            </div>
+            <h2 className="text-4xl font-extrabold leading-tight mb-4">
+              Tu Contabilidad Guatemalteca,{" "}
+              <span className="text-cyan-300">Simplificada.</span>
+            </h2>
+            <p className="text-white/60 leading-relaxed">
+              Facturación FEL, impuestos ISR/IVA/ISO, planilla con IGSS y contabilidad completa — todo en un solo lugar.
+            </p>
           </div>
-          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-          <CardDescription>Ingresa a tu cuenta de FiniTax Guatemala</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            {error && <AlertBanner variant="destructive" message={error} />}
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo Electrónico</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@empresa.com"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+
+          {/* Bottom stats */}
+          <div className="flex items-center gap-6 text-sm text-white/50">
+            <span>© {new Date().getFullYear()} FiniTax</span>
+            <span>Cumplimiento SAT 100%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Right: Login Form ─── */}
+      <div className="flex w-full lg:w-1/2 flex-col">
+        {/* Top bar */}
+        <div className="flex items-center justify-between p-6">
+          <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+            <ArrowLeft className="h-4 w-4" />
+            Volver al Inicio
+          </Link>
+          <Link href="/signup" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+            Crear Cuenta
+          </Link>
+        </div>
+
+        {/* Form centered */}
+        <div className="flex flex-1 items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm">
+            {/* Mobile logo */}
+            <div className="lg:hidden flex items-center gap-2.5 mb-8">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary text-white font-bold shadow-md shadow-primary/25">
+                F
               </div>
+              <span className="text-xl font-bold">
+                Fini<span className="text-primary">Tax</span>
+              </span>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+
+            <div className="mb-8">
+              <h1 className="text-2xl font-extrabold tracking-tight">Bienvenido de Vuelta</h1>
+              <p className="mt-2 text-muted-foreground">Ingresa a tu cuenta de FiniTax Guatemala</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              {error && <AlertBanner variant="destructive" message={error} />}
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">Correo Electrónico</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="tu@empresa.com"
+                    className="h-12 pl-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Spinner size="sm" /> : <>Ingresar <ArrowRight className="ml-2 h-4 w-4" /></>}
-            </Button>
-            <p className="text-sm text-muted-foreground">
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Contraseña</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="h-12 pl-11 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-xl gradient-primary border-0 text-white shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 transition-all text-base font-semibold"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <>
+                    Ingresar
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <p className="mt-8 text-center text-sm text-muted-foreground">
               ¿No tienes cuenta?{" "}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
-                Regístrate
+              <Link href="/signup" className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                Regístrate gratis
               </Link>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

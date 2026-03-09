@@ -17,14 +17,18 @@ export default function GlobalError({
 
   return (
     <html lang="es-GT">
-      <body className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="max-w-md text-center space-y-4">
-          <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
-          <h2 className="text-xl font-bold">Algo salió mal</h2>
-          <p className="text-muted-foreground text-sm">
-            Ocurrió un error inesperado. Por favor intenta de nuevo.
-          </p>
-          <Button onClick={reset}>Intentar de nuevo</Button>
+      <body className="flex min-h-screen items-center justify-center bg-background">
+        <div className="max-w-md text-center space-y-6">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-destructive/10">
+            <AlertTriangle className="h-10 w-10 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight">Algo salió mal</h2>
+            <p className="mt-2 text-muted-foreground text-sm leading-relaxed">
+              Ocurrió un error inesperado. Por favor intenta de nuevo.
+            </p>
+          </div>
+          <Button onClick={reset} className="rounded-xl">Intentar de nuevo</Button>
         </div>
       </body>
     </html>

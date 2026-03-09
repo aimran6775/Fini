@@ -16,11 +16,19 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-      <AlertTriangle className="h-10 w-10 text-red-500" />
-      <h2 className="text-lg font-bold">Error al cargar esta sección</h2>
-      <p className="text-sm text-muted-foreground max-w-md">{error.message || "Ocurrió un error inesperado."}</p>
-      <Button onClick={reset} variant="outline">Reintentar</Button>
+    <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
+      <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-destructive/10">
+        <AlertTriangle className="h-10 w-10 text-destructive" />
+      </div>
+      <div>
+        <h2 className="text-xl font-extrabold tracking-tight">Error al cargar esta sección</h2>
+        <p className="mt-2 text-sm text-muted-foreground max-w-md leading-relaxed">
+          {error.message || "Ocurrió un error inesperado."}
+        </p>
+      </div>
+      <Button onClick={reset} variant="outline" className="rounded-xl">
+        Reintentar
+      </Button>
     </div>
   );
 }
