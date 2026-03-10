@@ -1,20 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Receipt, Wallet, TrendingUp, TrendingDown, DollarSign,
-  FileText, Users, Calculator, ArrowRight, ArrowUpRight,
-  CalendarClock, Sparkles
+  FileText, Users, Calculator, ArrowUpRight, ArrowDownRight,
+  CalendarClock, Plus, ChevronRight, Landmark, Boxes,
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ org?: string }>;
-}) {
+export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -31,7 +25,7 @@ export default async function DashboardPage({
   const orgId = membership.organization_id;
   const org = (membership as any).organization;
 
-  const [invoicesRes, expensesRes, employeesRes] = await Promise.all([
+  const [invoicesRes, expensesRes, employeesRes, bankRes] = await Promise.all([
     supabase
       .from("fel_invoices")
       .select("total, status", { count: "exact" })
@@ -45,6 +39,11 @@ export default async function DashboardPage({
       .select("id", { count: "exact" })
       .eq("organization_id", orgId)
       .eq("status", "ACTIVE"),
+    supabase
+      .from("bank_accounts")
+      .select("current_balance")
+      .eq("organization_id", orgId)
+      .eq("is_active", true),
   ]);
 
   const totalInvoiced = invoicesRes.data
@@ -56,233 +55,276 @@ export default async function DashboardPage({
     .reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0) ?? 0;
 
   const netIncome = totalInvoiced - totalExpenses;
+  const bankBalance = bankRes.data?.reduce((sum: number, b: any) => sum + Number(b.current_balance || 0), 0) ?? 0;
 
-  const kpis = [
-    {
-      title: "Ingresos Facturados",
-      value: formatCurrency(totalInvoiced),
-      icon: TrendingUp,
-      gradient: "from-emerald-500 to-green-600",
-      bg: "bg-emerald-50",
-      text: "text-emerald-700",
-      change: "+12.5%",
-      changePositive: true,
-    },
-    {
-      title: "Gastos Aprobados",
-      value: formatCurrency(totalExpenses),
-      icon: TrendingDown,
-      gradient: "from-rose-500 to-red-600",
-      bg: "bg-rose-50",
-      text: "text-rose-700",
-      change: "-3.2%",
-      changePositive: false,
-    },
-    {
-      title: "Utilidad Neta",
-      value: formatCurrency(netIncome),
-      icon: DollarSign,
-      gradient: "from-violet-500 to-indigo-600",
-      bg: "bg-violet-50",
-      text: "text-violet-700",
-      change: "+8.1%",
-      changePositive: true,
-    },
-    {
-      title: "Facturas Emitidas",
-      value: String(invoicesRes.count ?? 0),
-      icon: Receipt,
-      gradient: "from-purple-500 to-fuchsia-600",
-      bg: "bg-purple-50",
-      text: "text-purple-700",
-    },
-    {
-      title: "Gastos Registrados",
-      value: String(expensesRes.count ?? 0),
-      icon: Wallet,
-      gradient: "from-amber-500 to-orange-600",
-      bg: "bg-amber-50",
-      text: "text-amber-700",
-    },
-    {
-      title: "Empleados Activos",
-      value: String(employeesRes.count ?? 0),
-      icon: Users,
-      gradient: "from-cyan-500 to-blue-600",
-      bg: "bg-cyan-50",
-      text: "text-cyan-700",
-    },
-  ];
+  // Get recent invoices
+  const { data: recentInvoices } = await supabase
+    .from("fel_invoices")
+    .select("id, client_name, total, status, invoice_date")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(5);
 
-  const quickActions = [
-    { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: Receipt, gradient: "from-violet-500 to-indigo-600" },
-    { label: "Nuevo Gasto", href: "/dashboard/expenses/new", icon: Wallet, gradient: "from-amber-500 to-orange-600" },
-    { label: "Nueva Partida", href: "/dashboard/journal/new", icon: FileText, gradient: "from-emerald-500 to-green-600" },
-    { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, gradient: "from-cyan-500 to-blue-600" },
-    { label: "Declarar Impuesto", href: "/dashboard/tax", icon: Calculator, gradient: "from-rose-500 to-red-600" },
-  ];
+  const { data: userProfile } = await supabase
+    .from("user_profiles")
+    .select("first_name")
+    .eq("id", user.id)
+    .single();
+
+  const greeting = getGreeting();
+  const firstName = userProfile?.first_name || user.user_metadata?.full_name?.split(" ")[0] || "Usuario";
 
   return (
-    <div className="space-y-8">
-      {/* ─── Welcome Banner ─── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-indigo-600 to-violet-700 p-8 text-white">
-        <div className="absolute inset-0 dot-pattern opacity-10" />
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-amber-300" />
-              <span className="text-sm font-medium text-white/70">Panel Principal</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Bienvenido de vuelta 👋
-            </h1>
-            <p className="mt-1 text-white/60 text-sm sm:text-base">
-              {org.name} • NIT: {org.nit_number} • {org.isr_regime === "UTILIDADES" ? "Régimen sobre Utilidades (25%)" : "Régimen Simplificado (5%/7%)"}
-            </p>
-          </div>
-          <Link href="/dashboard/invoices/new">
-            <Button className="bg-white/15 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 rounded-xl h-11 px-6 shadow-lg shadow-black/10 transition-all">
-              <Receipt className="mr-2 h-4 w-4" />
-              Nueva Factura
-            </Button>
+    <div className="space-y-8 animate-fade-in">
+      {/* ─── Header ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">{greeting}</p>
+          <h1 className="text-2xl font-bold tracking-tight mt-0.5">{firstName} 👋</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {org.name} · NIT {org.nit_number}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/dashboard/invoices/new"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors shadow-sm">
+            <Plus className="h-4 w-4" /> Nueva Factura
+          </Link>
+          <Link href="/dashboard/expenses/new"
+            className="inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium hover:bg-muted transition-colors">
+            <Plus className="h-4 w-4" /> Nuevo Gasto
           </Link>
         </div>
       </div>
 
-      {/* ─── KPI Cards ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {kpis.map((kpi, i) => (
-          <Card key={kpi.title} className="group rounded-2xl border-border/40 hover:border-border hover:shadow-lg transition-all duration-300 overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${kpi.gradient} text-white shadow-lg shadow-black/10`}>
-                  <kpi.icon className="h-5 w-5" />
-                </div>
-                {kpi.change && (
-                  <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                    kpi.changePositive
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-rose-50 text-rose-700"
-                  }`}>
-                    <ArrowUpRight className={`h-3 w-3 ${!kpi.changePositive && "rotate-90"}`} />
-                    {kpi.change}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground font-medium">{kpi.title}</p>
-              <p className="text-2xl font-extrabold tracking-tight mt-1">{kpi.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+      {/* ─── KPI Row ─── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard
+          label="Ingresos"
+          value={formatCurrency(totalInvoiced)}
+          icon={<TrendingUp className="h-4 w-4" />}
+          iconBg="bg-emerald-50 text-emerald-600"
+          trend={totalInvoiced > 0 ? "+12%" : undefined}
+          trendUp={true}
+        />
+        <KpiCard
+          label="Gastos"
+          value={formatCurrency(totalExpenses)}
+          icon={<TrendingDown className="h-4 w-4" />}
+          iconBg="bg-rose-50 text-rose-600"
+          trend={totalExpenses > 0 ? "-3%" : undefined}
+          trendUp={false}
+        />
+        <KpiCard
+          label="Utilidad Neta"
+          value={formatCurrency(netIncome)}
+          icon={<DollarSign className="h-4 w-4" />}
+          iconBg="bg-violet-50 text-violet-600"
+        />
+        <KpiCard
+          label="Saldo Bancario"
+          value={formatCurrency(bankBalance)}
+          icon={<Landmark className="h-4 w-4" />}
+          iconBg="bg-blue-50 text-blue-600"
+        />
       </div>
 
-      {/* ─── Quick Actions ─── */}
-      <Card className="rounded-2xl border-border/40">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Acciones Rápidas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {quickActions.map((action) => (
-              <Link key={action.href} href={action.href}>
-                <Button
-                  variant="outline"
-                  className="rounded-xl h-11 gap-2.5 border-border/60 hover:border-primary/30 hover:bg-primary/5 hover:text-primary transition-all duration-200"
-                >
-                  <div className={`flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br ${action.gradient} text-white`}>
-                    <action.icon className="h-3.5 w-3.5" />
-                  </div>
-                  {action.label}
-                </Button>
+      {/* ─── Middle Grid ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions */}
+        <div className="lg:col-span-1 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">Acciones Rápidas</h2>
+          <div className="space-y-1.5">
+            {[
+              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "text-indigo-600 bg-indigo-50" },
+              { label: "Registrar Gasto", href: "/dashboard/expenses/new", icon: Receipt, color: "text-amber-600 bg-amber-50" },
+              { label: "Partida de Diario", href: "/dashboard/journal/new", icon: FileText, color: "text-emerald-600 bg-emerald-50" },
+              { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, color: "text-cyan-600 bg-cyan-50" },
+              { label: "Calcular Impuesto", href: "/dashboard/tax", icon: Calculator, color: "text-rose-600 bg-rose-50" },
+              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "text-purple-600 bg-purple-50" },
+            ].map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className="flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors group"
+              >
+                <div className={`flex h-8 w-8 items-center justify-center rounded-md ${action.color}`}>
+                  <action.icon className="h-4 w-4" />
+                </div>
+                <span className="font-medium flex-1">{action.label}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
               </Link>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* ─── Tax Summary + Upcoming ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Recent Invoices */}
+        <div className="lg:col-span-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Facturas Recientes</h2>
+            <Link href="/dashboard/invoices" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+              Ver todas →
+            </Link>
+          </div>
+          <div className="rounded-lg border overflow-hidden">
+            {!recentInvoices || recentInvoices.length === 0 ? (
+              <div className="py-12 text-center">
+                <FileText className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">No hay facturas todavía</p>
+                <Link href="/dashboard/invoices/new" className="text-sm text-primary hover:underline mt-1 inline-block">
+                  Crear primera factura →
+                </Link>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">Cliente</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">Fecha</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2.5">Monto</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2.5">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentInvoices.map((inv: any) => (
+                    <tr key={inv.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-3">
+                        <Link href={`/dashboard/invoices/${inv.id}`} className="text-sm font-medium hover:text-primary transition-colors">
+                          {inv.client_name || "CF"}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {new Date(inv.invoice_date).toLocaleDateString("es-GT", { day: "2-digit", month: "short" })}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(inv.total)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                          inv.status === "CERTIFIED" ? "bg-emerald-50 text-emerald-700" :
+                          inv.status === "VOIDED" ? "bg-red-50 text-red-700" :
+                          "bg-neutral-100 text-neutral-600"
+                        }`}>
+                          {inv.status === "CERTIFIED" ? "Certificada" : inv.status === "VOIDED" ? "Anulada" : "Borrador"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Bottom Stats Row ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Tax Summary */}
-        <Card className="rounded-2xl border-border/40">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-primary" />
-              Resumen Fiscal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
-              <div className="flex items-center gap-3">
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Calculator className="h-4 w-4 text-muted-foreground" /> Resumen Fiscal
+          </h2>
+          <div className="rounded-lg border divide-y">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <span className="text-sm font-medium">IVA Débito Fiscal (12%)</span>
+                <span className="text-sm">IVA Débito Fiscal</span>
               </div>
-              <span className="text-sm font-bold">{formatCurrency(totalInvoiced * 0.12 / 1.12)}</span>
+              <span className="text-sm font-semibold">{formatCurrency(totalInvoiced * 0.12 / 1.12)}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                <span className="text-sm font-medium">IVA Crédito Fiscal</span>
+                <span className="text-sm">IVA Crédito Fiscal</span>
               </div>
-              <span className="text-sm font-bold">{formatCurrency(totalExpenses * 0.12 / 1.12)}</span>
+              <span className="text-sm font-semibold">{formatCurrency(totalExpenses * 0.12 / 1.12)}</span>
             </div>
-            <div className="border-t pt-4 flex items-center justify-between">
-              <span className="text-sm font-bold">IVA a Pagar</span>
-              <span className="text-lg font-extrabold text-primary">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/30">
+              <span className="text-sm font-semibold">IVA a Pagar</span>
+              <span className="text-sm font-bold text-primary">
                 {formatCurrency(Math.max(0, (totalInvoiced - totalExpenses) * 0.12 / 1.12))}
               </span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Upcoming Obligations */}
-        <Card className="rounded-2xl border-border/40">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <CalendarClock className="h-5 w-5 text-primary" />
-              Próximas Obligaciones
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-amber-50 border border-amber-100">
-              <div>
-                <p className="text-sm font-semibold text-amber-900">IVA Mensual</p>
-                <p className="text-xs text-amber-700/70 mt-0.5">Vence día 15 del mes siguiente</p>
+        {/* Obligations */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 text-muted-foreground" /> Próximas Obligaciones
+          </h2>
+          <div className="rounded-lg border divide-y">
+            {[
+              { tax: "IVA Mensual", desc: "Vence día 15 del mes siguiente", status: "Pendiente", color: "text-amber-700 bg-amber-50" },
+              { tax: "ISR Trimestral", desc: "Vence cada trimestre", status: "Próximo", color: "text-blue-700 bg-blue-50" },
+              { tax: "ISO Trimestral", desc: "1% sobre activos o ingresos", status: "Próximo", color: "text-violet-700 bg-violet-50" },
+            ].map((ob) => (
+              <div key={ob.tax} className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">{ob.tax}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{ob.desc}</p>
+                </div>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${ob.color}`}>
+                  {ob.status}
+                </span>
               </div>
-              <span className="inline-flex items-center rounded-lg bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                Pendiente
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-xl bg-blue-50 border border-blue-100">
-              <div>
-                <p className="text-sm font-semibold text-blue-900">ISR Trimestral</p>
-                <p className="text-xs text-blue-700/70 mt-0.5">Vence cada trimestre</p>
-              </div>
-              <span className="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-                Próximo
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-xl bg-violet-50 border border-violet-100">
-              <div>
-                <p className="text-sm font-semibold text-violet-900">ISO Trimestral</p>
-                <p className="text-xs text-violet-700/70 mt-0.5">1% sobre activos o ingresos</p>
-              </div>
-              <span className="inline-flex items-center rounded-lg bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-800">
-                Próximo
-              </span>
-            </div>
-            <Link href="/dashboard/tax" className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary/80 pt-2 transition-colors">
-              Ver todas las obligaciones
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+          <Link href="/dashboard/tax" className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+            Ver obligaciones fiscales <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </div>
+
+      {/* ─── Counters ─── */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-lg border px-4 py-3 text-center">
+          <p className="text-2xl font-bold">{invoicesRes.count ?? 0}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Facturas Emitidas</p>
+        </div>
+        <div className="rounded-lg border px-4 py-3 text-center">
+          <p className="text-2xl font-bold">{expensesRes.count ?? 0}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Gastos Registrados</p>
+        </div>
+        <div className="rounded-lg border px-4 py-3 text-center">
+          <p className="text-2xl font-bold">{employeesRes.count ?? 0}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Empleados Activos</p>
+        </div>
       </div>
     </div>
   );
+}
+
+/* ── Helper Components ── */
+
+function KpiCard({ label, value, icon, iconBg, trend, trendUp }: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  trend?: string;
+  trendUp?: boolean;
+}) {
+  return (
+    <div className="rounded-lg border px-4 py-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBg}`}>
+          {icon}
+        </div>
+        {trend && (
+          <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${trendUp ? "text-emerald-600" : "text-rose-600"}`}>
+            {trendUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+            {trend}
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xl font-bold tracking-tight mt-0.5">{value}</p>
+    </div>
+  );
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Buenos días,";
+  if (h < 18) return "Buenas tardes,";
+  return "Buenas noches,";
 }
