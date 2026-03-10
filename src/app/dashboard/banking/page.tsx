@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Landmark } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Landmark, Plus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import Link from "next/link";
 
 export default async function BankingPage() {
   const supabase = await createClient();
@@ -30,9 +32,14 @@ export default async function BankingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Bancos</h1>
-        <p className="text-muted-foreground">Cuentas bancarias y conciliación</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Bancos</h1>
+          <p className="text-muted-foreground">Cuentas bancarias y conciliación</p>
+        </div>
+        <Link href="/dashboard/banking/new">
+          <Button><Plus className="mr-2 h-4 w-4" /> Nueva Cuenta</Button>
+        </Link>
       </div>
 
       <Card>

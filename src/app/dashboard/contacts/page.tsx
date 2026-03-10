@@ -43,13 +43,13 @@ export default async function ContactsPage() {
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Clientes</p>
-            <p className="text-2xl font-bold">{contacts?.filter((c: any) => c.type === "customer").length ?? 0}</p>
+            <p className="text-2xl font-bold">{contacts?.filter((c: any) => c.contact_type === "CLIENT" || c.contact_type === "BOTH").length ?? 0}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Proveedores</p>
-            <p className="text-2xl font-bold">{contacts?.filter((c: any) => c.type === "vendor").length ?? 0}</p>
+            <p className="text-2xl font-bold">{contacts?.filter((c: any) => c.contact_type === "VENDOR" || c.contact_type === "BOTH").length ?? 0}</p>
           </CardContent>
         </Card>
         <Card>
@@ -86,8 +86,8 @@ export default async function ContactsPage() {
                     <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell className="font-mono">{c.nit || "CF"}</TableCell>
                     <TableCell>
-                      <Badge variant={c.type === "customer" ? "default" : "secondary"}>
-                        {c.type === "customer" ? "Cliente" : c.type === "vendor" ? "Proveedor" : "Otro"}
+                      <Badge variant={c.contact_type === "CLIENT" ? "default" : c.contact_type === "VENDOR" ? "secondary" : "outline"}>
+                        {c.contact_type === "CLIENT" ? "Cliente" : c.contact_type === "VENDOR" ? "Proveedor" : "Ambos"}
                       </Badge>
                     </TableCell>
                     <TableCell>{c.email || "—"}</TableCell>

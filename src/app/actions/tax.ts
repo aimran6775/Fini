@@ -163,44 +163,55 @@ export async function createTaxFiling(formData: FormData) {
   if (!user) redirect("/login");
 
   const orgId = formData.get("organization_id") as string;
-  const taxType = (formData.get("tax_type") as string) || (formData.get("form_type") as string);
+  const formType = (formData.get("tax_type") as string) || (formData.get("form_type") as string);
   const period = formData.get("period") as string;
   const taxableBase = parseFloat(formData.get("taxable_base") as string || "0");
   const taxAmount = parseFloat(formData.get("tax_amount") as string || "0");
   const credits = parseFloat(formData.get("credits") as string || "0");
   const netTax = parseFloat(formData.get("net_tax") as string || "0");
 
-  // Compute due_date based on tax type and period
-  let dueDate: string | null = null;
+  // Parse period to extract year, month, quarter
+  let periodYear = new Date().getFullYear();
+  let periodMonth: number | null = null;
+  let periodQuarter: number | null = null;
+
   if (period) {
     const [yearStr, rest] = period.split("-");
-    const yr = parseInt(yearStr);
-    if (taxType === "IVA_MENSUAL" && rest) {
-      const mo = parseInt(rest);
-      // IVA due: last business day of next month (approximate: 28th of next month)
-      const nextMo = mo === 12 ? 1 : mo + 1;
-      const nextYr = mo === 12 ? yr + 1 : yr;
-      dueDate = `${nextYr}-${String(nextMo).padStart(2, "0")}-28`;
-    } else if (rest?.startsWith("Q")) {
-      const q = parseInt(rest[1]);
-      const endMonth = q * 3 + 1 > 12 ? 1 : q * 3 + 1;
-      const endYear = q * 3 + 1 > 12 ? yr + 1 : yr;
-      dueDate = `${endYear}-${String(endMonth).padStart(2, "0")}-10`;
+    periodYear = parseInt(yearStr);
+    if (rest?.startsWith("Q")) {
+      periodQuarter = parseInt(rest[1]);
+    } else if (rest) {
+      periodMonth = parseInt(rest);
     }
   }
 
-  const { error } = await supabase.from("tax_filings").insert({
+  // Build the insert object based on form type
+  const insertData: Record<string, any> = {
     organization_id: orgId,
-    tax_type: taxType,
-    period,
-    due_date: dueDate,
-    taxable_base: taxableBase,
-    tax_amount: taxAmount,
-    credits,
-    net_tax: netTax,
+    form_type: formType,
+    period_year: periodYear,
+    period_month: periodMonth,
+    period_quarter: periodQuarter,
     status: "CALCULATED",
-    created_by: user.id,
-  });
+  };
+
+  // Fill type-specific fields
+  if (formType === "IVA_MENSUAL") {
+    insertData.iva_debito = taxAmount;
+    insertData.iva_credito = credits;
+    insertData.iva_a_pagar = netTax;
+  } else if (formType === "ISR_TRIMESTRAL" || formType === "ISR_MENSUAL") {
+    insertData.gross_income = taxableBase + (formData.get("deductible_expenses") ? parseFloat(formData.get("deductible_expenses") as string) : 0);
+    insertData.deductible_expenses = formData.get("deductible_expenses") ? parseFloat(formData.get("deductible_expenses") as string) : 0;
+    insertData.taxable_income = taxableBase;
+    insertData.isr_amount = taxAmount;
+    insertData.isr_balance = netTax;
+  } else if (formType === "ISO_TRIMESTRAL") {
+    insertData.iso_base = taxableBase;
+    insertData.iso_amount = taxAmount;
+  }
+
+  const { error } = await supabase.from("tax_filings").insert(insertData);
 
   if (error) return { error: error.message };
   revalidatePath("/dashboard/tax");

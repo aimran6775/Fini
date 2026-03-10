@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { Package } from "lucide-react";
+import { Package, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 // Guatemala fiscal depreciation rates (Decreto 10-2012)
 const DEPRECIATION_RATES: Record<string, { rate: number; label: string }> = {
@@ -48,6 +50,9 @@ export default async function AssetsPage() {
           <h1 className="text-2xl font-bold">Activos Fijos</h1>
           <p className="text-muted-foreground">Control de activos con depreciación fiscal guatemalteca</p>
         </div>
+        <Link href="/dashboard/assets/new">
+          <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Activo</Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -110,10 +115,10 @@ export default async function AssetsPage() {
               <TableBody>
                 {assets.map((a: any) => (
                   <TableRow key={a.id}>
-                    <TableCell className="font-medium">{a.name}</TableCell>
+                    <TableCell className="font-medium">{a.asset_name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {DEPRECIATION_RATES[a.category]?.label || a.category}
+                        {DEPRECIATION_RATES[a.asset_category]?.label || a.asset_category}
                       </Badge>
                     </TableCell>
                     <TableCell>{new Date(a.acquisition_date).toLocaleDateString("es-GT")}</TableCell>
@@ -123,8 +128,8 @@ export default async function AssetsPage() {
                       {formatCurrency(Number(a.acquisition_cost) - Number(a.accumulated_depreciation || 0))}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={a.status === "active" ? "success" : "secondary"}>
-                        {a.status === "active" ? "Activo" : a.status === "disposed" ? "Dado de baja" : a.status}
+                      <Badge variant={a.status === "ACTIVE" ? "success" : "secondary"}>
+                        {a.status === "ACTIVE" ? "Activo" : a.status === "DISPOSED" ? "Dado de baja" : "Depreciado"}
                       </Badge>
                     </TableCell>
                   </TableRow>

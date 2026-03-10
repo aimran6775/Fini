@@ -21,17 +21,18 @@ export default async function AuditPage() {
 
   const { data: logs } = await supabase
     .from("audit_logs")
-    .select("*, user:user_profiles(full_name)")
+    .select("*, user:user_profiles(first_name, last_name)")
     .eq("organization_id", membership.organization_id)
     .order("created_at", { ascending: false })
     .limit(100);
 
   const actionColors: Record<string, string> = {
-    create: "success",
-    update: "default",
-    delete: "destructive",
-    approve: "success",
-    void: "warning",
+    CREATE: "success",
+    UPDATE: "default",
+    DELETE: "destructive",
+    APPROVE: "success",
+    CERTIFY: "success",
+    VOID: "warning",
   };
 
   return (
@@ -66,14 +67,14 @@ export default async function AuditPage() {
                     <TableCell className="text-xs">
                       {new Date(log.created_at).toLocaleString("es-GT")}
                     </TableCell>
-                    <TableCell>{(log.user as any)?.full_name || "Sistema"}</TableCell>
+                    <TableCell>{(log.user as any)?.first_name ? `${(log.user as any).first_name} ${(log.user as any).last_name || ""}`.trim() : "Sistema"}</TableCell>
                     <TableCell>
                       <Badge variant={actionColors[log.action] as any || "secondary"}>
                         {log.action}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-xs">{log.entity_type}</TableCell>
-                    <TableCell className="text-sm">{log.description || "—"}</TableCell>
+                    <TableCell className="text-sm">{log.details ? (typeof log.details === 'object' ? (log.details as any).description || JSON.stringify(log.details) : String(log.details)) : "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

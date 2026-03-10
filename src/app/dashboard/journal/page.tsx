@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -24,7 +23,7 @@ export default async function JournalPage() {
 
   const { data: entries } = await supabase
     .from("journal_entries")
-    .select(`*, lines:journal_entry_lines(*, account:chart_of_accounts(code, name))`)
+    .select(`*, lines:journal_entry_lines(*, account:chart_of_accounts(account_code, account_name))`)
     .eq("organization_id", membership.organization_id)
     .order("entry_date", { ascending: false })
     .limit(100);
@@ -63,9 +62,6 @@ export default async function JournalPage() {
                         {formatDate(entry.entry_date)} {entry.reference && `• Ref: ${entry.reference}`}
                       </p>
                     </div>
-                    <Badge variant={entry.status === "posted" ? "success" : "secondary"}>
-                      {entry.status === "posted" ? "Registrada" : "Borrador"}
-                    </Badge>
                   </div>
                   <Table>
                     <TableHeader>
@@ -80,7 +76,7 @@ export default async function JournalPage() {
                       {entry.lines?.map((line: any) => (
                         <TableRow key={line.id}>
                           <TableCell className="font-mono text-sm">
-                            {(line.account as any)?.code} — {(line.account as any)?.name}
+                            {(line.account as any)?.account_code} — {(line.account as any)?.account_name}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">{line.description || "—"}</TableCell>
                           <TableCell className="text-right">{line.debit > 0 ? formatCurrency(line.debit) : ""}</TableCell>
@@ -89,8 +85,12 @@ export default async function JournalPage() {
                       ))}
                       <TableRow className="font-bold">
                         <TableCell colSpan={2}>Totales</TableCell>
-                        <TableCell className="text-right">{formatCurrency(entry.total_debit)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(entry.total_credit)}</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(entry.lines?.reduce((s: number, l: any) => s + Number(l.debit || 0), 0) ?? 0)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(entry.lines?.reduce((s: number, l: any) => s + Number(l.credit || 0), 0) ?? 0)}
+                        </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>

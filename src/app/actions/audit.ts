@@ -23,9 +23,10 @@ export async function logAuditEvent(params: {
       action: params.action,
       entity_type: params.entity_type,
       entity_id: params.entity_id ?? null,
-      description: params.description ?? null,
-      metadata: params.metadata ? JSON.stringify(params.metadata) : null,
-      created_at: new Date().toISOString(),
+      details: {
+        description: params.description ?? null,
+        ...(params.metadata ?? {}),
+      },
     });
   } catch {
     // Silently fail — audit logging should never block the main action

@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
-import { Wallet } from "lucide-react";
+import { Wallet, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function BudgetsPage() {
   const supabase = await createClient();
@@ -21,15 +23,20 @@ export default async function BudgetsPage() {
 
   const { data: budgets } = await supabase
     .from("budgets")
-    .select("*")
+    .select("*, account:chart_of_accounts(account_code, account_name)")
     .eq("organization_id", membership.organization_id)
-    .order("start_date", { ascending: false });
+    .order("period_year", { ascending: false });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Presupuestos</h1>
-        <p className="text-muted-foreground">Planificación y control presupuestario</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Presupuestos</h1>
+          <p className="text-muted-foreground">Planificación y control presupuestario</p>
+        </div>
+        <Link href="/dashboard/budgets/new">
+          <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Presupuesto</Button>
+        </Link>
       </div>
 
       <Card>
@@ -45,7 +52,7 @@ export default async function BudgetsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nombre</TableHead>
+                  <TableHead>Cuenta</TableHead>
                   <TableHead>Período</TableHead>
                   <TableHead className="text-right">Monto Presupuestado</TableHead>
                   <TableHead className="text-right">Ejecutado</TableHead>
@@ -55,12 +62,17 @@ export default async function BudgetsPage() {
               <TableBody>
                 {budgets.map((b: any) => {
                   const pct = b.budgeted_amount > 0 ? (Number(b.actual_amount || 0) / Number(b.budgeted_amount) * 100) : 0;
+                  const periodLabel = b.period_month
+                    ? `${b.period_year}-${String(b.period_month).padStart(2, "0")}`
+                    : b.period_quarter
+                    ? `${b.period_year}-Q${b.period_quarter}`
+                    : `${b.period_year}`;
                   return (
                     <TableRow key={b.id}>
-                      <TableCell className="font-medium">{b.name}</TableCell>
-                      <TableCell className="text-sm">
-                        {new Date(b.start_date).toLocaleDateString("es-GT")} — {new Date(b.end_date).toLocaleDateString("es-GT")}
+                      <TableCell className="font-medium">
+                        {(b.account as any)?.account_code} {(b.account as any)?.account_name}
                       </TableCell>
+                      <TableCell className="text-sm">{b.period_type} — {periodLabel}</TableCell>
                       <TableCell className="text-right">{formatCurrency(b.budgeted_amount)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(b.actual_amount || 0)}</TableCell>
                       <TableCell className="text-right">

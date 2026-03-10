@@ -32,7 +32,7 @@ export default async function InventoryPage() {
     sum + Number(i.cost_price || 0) * Number(i.current_stock || 0), 0) ?? 0;
 
   const lowStock = items?.filter((i: any) =>
-    !i.is_service && Number(i.current_stock) <= Number(i.min_stock)).length ?? 0;
+    Number(i.current_stock) <= Number(i.min_stock) && Number(i.min_stock) > 0).length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -88,21 +88,21 @@ export default async function InventoryPage() {
                   <TableHead className="text-right">Costo</TableHead>
                   <TableHead className="text-right">Precio Venta</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
-                  <TableHead>Tipo</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item: any) => (
-                  <TableRow key={item.id} className={!item.is_service && Number(item.current_stock) <= Number(item.min_stock) ? "bg-orange-50" : ""}>
+                  <TableRow key={item.id} className={Number(item.current_stock) <= Number(item.min_stock) && Number(item.min_stock) > 0 ? "bg-orange-50" : ""}>
                     <TableCell className="font-mono text-xs">{item.sku || "—"}</TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.category || "—"}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.cost_price)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(item.sale_price)}</TableCell>
-                    <TableCell className="text-right">{item.is_service ? "—" : `${item.current_stock} ${item.unit_of_measure}`}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
+                    <TableCell className="text-right">{`${item.current_stock} ${item.unit_of_measure}`}</TableCell>
                     <TableCell>
-                      <Badge variant={item.is_service ? "outline" : "default"}>
-                        {item.is_service ? "Servicio" : "Producto"}
+                      <Badge variant={item.is_active ? "default" : "secondary"}>
+                        {item.is_active ? "Activo" : "Inactivo"}
                       </Badge>
                     </TableCell>
                   </TableRow>

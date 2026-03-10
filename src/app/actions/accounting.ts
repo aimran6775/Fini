@@ -103,3 +103,54 @@ export async function createJournalEntry(formData: FormData) {
   revalidatePath("/dashboard/journal");
   redirect("/dashboard/journal");
 }
+
+export async function createFixedAsset(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const acquisitionCost = parseFloat(formData.get("acquisition_cost") as string || "0");
+  const residualValue = parseFloat(formData.get("residual_value") as string || "0");
+
+  const { error } = await supabase.from("fixed_assets").insert({
+    organization_id: formData.get("organization_id") as string,
+    asset_name: formData.get("asset_name") as string,
+    asset_category: formData.get("asset_category") as string,
+    description: (formData.get("description") as string) || null,
+    acquisition_date: formData.get("acquisition_date") as string,
+    acquisition_cost: acquisitionCost,
+    residual_value: residualValue,
+    useful_life_years: parseFloat(formData.get("useful_life_years") as string || "5"),
+    depreciation_rate: parseFloat(formData.get("depreciation_rate") as string || "20"),
+    depreciation_method: "STRAIGHT_LINE",
+    accumulated_depreciation: 0,
+    net_book_value: acquisitionCost - residualValue,
+    status: "ACTIVE",
+  });
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/assets");
+  return { success: true };
+}
+
+export async function createBudget(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase.from("budgets").insert({
+    organization_id: formData.get("organization_id") as string,
+    account_id: formData.get("account_id") as string,
+    period_type: formData.get("period_type") as string,
+    period_year: parseInt(formData.get("period_year") as string),
+    period_month: formData.get("period_month") ? parseInt(formData.get("period_month") as string) : null,
+    period_quarter: formData.get("period_quarter") ? parseInt(formData.get("period_quarter") as string) : null,
+    budgeted_amount: parseFloat(formData.get("budgeted_amount") as string || "0"),
+    actual_amount: 0,
+    notes: (formData.get("notes") as string) || null,
+  });
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/budgets");
+  return { success: true };
+}

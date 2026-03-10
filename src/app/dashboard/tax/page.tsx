@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calculator, AlertTriangle } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { TAX_RATES } from "@/lib/tax-utils";
 import { TaxCalculator } from "@/components/dashboard/tax-calculator";
 
@@ -27,7 +27,7 @@ export default async function TaxPage() {
     .from("tax_filings")
     .select("*")
     .eq("organization_id", membership.organization_id)
-    .order("due_date", { ascending: false })
+    .order("period_year", { ascending: false })
     .limit(24);
 
   return (
@@ -115,8 +115,6 @@ export default async function TaxPage() {
                 <TableRow>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Período</TableHead>
-                  <TableHead>Vencimiento</TableHead>
-                  <TableHead className="text-right">Base Imponible</TableHead>
                   <TableHead className="text-right">Impuesto</TableHead>
                   <TableHead className="text-right">Créditos</TableHead>
                   <TableHead className="text-right">Neto a Pagar</TableHead>
@@ -124,22 +122,56 @@ export default async function TaxPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filings.map((f: any) => (
-                  <TableRow key={f.id}>
-                    <TableCell className="font-medium">{f.tax_type}</TableCell>
-                    <TableCell>{f.period}</TableCell>
-                    <TableCell>{formatDate(f.due_date)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(f.taxable_base)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(f.tax_amount)}</TableCell>
-                    <TableCell className="text-right text-green-600">{formatCurrency(f.credits || 0)}</TableCell>
-                    <TableCell className="text-right font-bold">{formatCurrency(f.net_tax)}</TableCell>
-                    <TableCell>
-                      <Badge variant={f.status === "FILED" ? "success" : f.status === "ACCEPTED" ? "default" : "warning"}>
-                        {f.status === "FILED" ? "Presentada" : f.status === "ACCEPTED" ? "Aceptada" : f.status === "CALCULATED" ? "Calculada" : "Borrador"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filings.map((f: any) => {
+                  // Determine display values based on form_type
+                  const periodLabel = f.period_month
+                    ? `${f.period_year}-${String(f.period_month).padStart(2, "0")}`
+                    : f.period_quarter
+                    ? `${f.period_year}-Q${f.period_quarter}`
+                    : `${f.period_year}`;
+
+                  let taxAmount = 0;
+                  let creditAmount = 0;
+                  let netAmount = 0;
+
+                  if (f.form_type === "IVA_MENSUAL") {
+                    taxAmount = Number(f.iva_debito || 0);
+                    creditAmount = Number(f.iva_credito || 0);
+                    netAmount = Number(f.iva_a_pagar || 0);
+                  } else if (f.form_type?.startsWith("ISR")) {
+                    taxAmount = Number(f.isr_amount || 0);
+                    creditAmount = Number(f.isr_prepaid || 0);
+                    netAmount = Number(f.isr_balance || 0);
+                  } else if (f.form_type === "ISO_TRIMESTRAL") {
+                    taxAmount = Number(f.iso_amount || 0);
+                    creditAmount = Number(f.iso_credited_to_isr || 0);
+                    netAmount = Number(f.iso_amount || 0);
+                  }
+
+                  const typeLabels: Record<string, string> = {
+                    IVA_MENSUAL: "IVA Mensual",
+                    ISR_TRIMESTRAL: "ISR Trimestral",
+                    ISR_MENSUAL: "ISR Mensual",
+                    ISR_ANUAL: "ISR Anual",
+                    ISO_TRIMESTRAL: "ISO Trimestral",
+                    RETENCIONES_ISR: "Retenciones ISR",
+                  };
+
+                  return (
+                    <TableRow key={f.id}>
+                      <TableCell className="font-medium">{typeLabels[f.form_type] || f.form_type}</TableCell>
+                      <TableCell>{periodLabel}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(taxAmount)}</TableCell>
+                      <TableCell className="text-right text-green-600">{formatCurrency(creditAmount)}</TableCell>
+                      <TableCell className="text-right font-bold">{formatCurrency(netAmount)}</TableCell>
+                      <TableCell>
+                        <Badge variant={f.status === "FILED" ? "success" : f.status === "ACCEPTED" ? "default" : "warning"}>
+                          {f.status === "FILED" ? "Presentada" : f.status === "ACCEPTED" ? "Aceptada" : f.status === "CALCULATED" ? "Calculada" : "Borrador"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
