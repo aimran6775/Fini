@@ -9,9 +9,9 @@ import {
   Globe2, Lock, Star,
 } from "lucide-react";
 
-/* ── Pexels Guatemala Video URLs ─────────────────────────────── */
-const HERO_VIDEO = "https://videos.pexels.com/video-files/16679245/16679245-uhd_2560_1440_30fps.mp4";
-const CTA_VIDEO  = "https://videos.pexels.com/video-files/35224277/14923245/pexels-35224277-14923245-landscape-4k.mp4";
+/* ── Local video served from public/ ──────────────────────────── */
+const HERO_VIDEO = "/videos/hero.mp4";
+const CTA_VIDEO  = "/videos/hero.mp4";
 
 /* ── Data ─────────────────────────────────────────────────────── */
 const features = [
