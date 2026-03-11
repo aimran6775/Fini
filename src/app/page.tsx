@@ -81,16 +81,7 @@ function CountUp({ target, suffix = "", decimals = 0 }: { target: number; suffix
 
 /* Floating orbs background */
 function FloatingOrbs() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Main gradient orbs */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-indigo-600/30 rounded-full blur-[128px] animate-blob" />
-      <div className="absolute top-1/3 right-0 w-80 h-80 bg-purple-600/25 rounded-full blur-[100px] animate-blob delay-2000" />
-      <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-cyan-500/20 rounded-full blur-[90px] animate-blob delay-4000" />
-      {/* Subtle accent orb */}
-      <div className="absolute top-2/3 right-1/4 w-64 h-64 bg-emerald-500/15 rounded-full blur-[80px] animate-float" />
-    </div>
-  );
+  return null; // Using static image instead
 }
 
 /* Grid pattern overlay */
@@ -180,11 +171,13 @@ export default function LandingPage() {
           HERO SECTION
           ═══════════════════════════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
-        <FloatingOrbs />
-        <GridPattern />
-        
-        {/* Radial gradient spotlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-indigo-500/20 via-transparent to-transparent blur-3xl pointer-events-none" />
+        {/* Background image from video first frame */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/70 via-[#030712]/60 to-[#030712]" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 py-20 sm:py-32">
           <div className="text-center max-w-4xl mx-auto">
