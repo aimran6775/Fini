@@ -132,7 +132,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-white/20 mt-6">
-          © {new Date().getFullYear()} FiniTax Guatemala
+          © {new Date().getFullYear()} Fini Tax GT
         </p>
       </div>
     </div>

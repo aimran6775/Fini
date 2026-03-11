@@ -16,24 +16,26 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "FiniTax Guatemala — Contabilidad e Impuestos",
-    template: "%s | FiniTax Guatemala",
+    default: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
+    template: "%s | Fini Tax GT",
   },
   description:
-    "Plataforma integral de contabilidad, facturación FEL, planilla, impuestos y finanzas para empresas en Guatemala. ISR, IVA, ISO, IGSS, SAT.",
+    "QuickBooks + TurboTax para Guatemala. Calcula impuestos personales o gestiona tu empresa: facturación FEL, ISR, IVA, ISO, planilla, IGSS y SAT.",
   keywords: [
+    "impuestos guatemala",
     "contabilidad guatemala",
     "facturación electrónica FEL",
-    "impuestos SAT",
+    "ISR personal guatemala",
     "planilla IGSS",
-    "ISR Guatemala",
     "IVA Guatemala",
     "ISO Guatemala",
-    "FiniTax",
+    "quickbooks guatemala",
+    "turbotax guatemala",
+    "Fini Tax",
   ],
   openGraph: {
-    title: "FiniTax Guatemala — Contabilidad e Impuestos",
-    description: "La plataforma #1 para gestionar contabilidad, FEL, planilla e impuestos en Guatemala.",
+    title: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
+    description: "QuickBooks + TurboTax para Guatemala. Impuestos personales, facturación FEL, contabilidad, planilla y más.",
     type: "website",
     locale: "es_GT",
   },

@@ -34,20 +34,28 @@ export function FiniTaxMark({ size = 40, className }: MarkProps) {
   );
 }
 
-/* ─── FiniTax Full Logo (mark + wordmark) ─── */
+/* ─── Fini Tax Full Logo (mark + wordmark + GT tag) ─── */
 interface LogoProps {
   size?: number;
   textSize?: string;
   className?: string;
+  showTag?: boolean;
 }
 
-export function FiniTaxLogo({ size = 36, textSize = "text-lg", className }: LogoProps) {
+export function FiniTaxLogo({ size = 36, textSize = "text-lg", className, showTag = true }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <FiniTaxMark size={size} />
-      <span className={cn("font-bold tracking-tight", textSize)}>
-        Fini<span className="text-primary">Tax</span>
-      </span>
+      <div className="flex items-center gap-1.5">
+        <span className={cn("font-bold tracking-tight", textSize)}>
+          Fini <span className="text-primary">Tax</span>
+        </span>
+        {showTag && (
+          <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 tracking-wider leading-none">
+            GT
+          </span>
+        )}
+      </div>
     </div>
   );
 }

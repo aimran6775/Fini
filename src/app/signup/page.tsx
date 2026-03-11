@@ -27,10 +27,14 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
+    const nameParts = fullName.trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
     const { data, error: err } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { first_name: firstName, last_name: lastName, full_name: fullName } },
     });
 
     if (err) {
@@ -40,8 +44,11 @@ export default function SignupPage() {
     }
 
     // If user is confirmed immediately (email confirmation disabled)
-    if (data.user?.identities?.length) {
+    if (data.user && data.session) {
       router.push("/dashboard");
+    } else if (data.user?.identities?.length === 0) {
+      // User already exists
+      setError("Ya existe una cuenta con este correo electrónico");
     } else {
       setEmailSent(true);
     }
@@ -184,7 +191,7 @@ export default function SignupPage() {
         </div>
 
         <p className="text-center text-xs text-white/20 mt-6">
-          © {new Date().getFullYear()} FiniTax Guatemala
+          © {new Date().getFullYear()} Fini Tax GT
         </p>
       </div>
     </div>

@@ -53,11 +53,40 @@ const chartMonths = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Se
 function VideoBackground({ src, overlay = "bg-black/60", children, className = "" }: {
   src: string; overlay?: string; children?: React.ReactNode; className?: string;
 }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
+
+  useEffect(() => {
+    // On mobile or when video fails, show fallback
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      setVideoFailed(true);
+      return;
+    }
+    const vid = videoRef.current;
+    if (!vid) return;
+    const timeout = setTimeout(() => {
+      if (vid.readyState < 2) setVideoFailed(true);
+    }, 4000);
+    vid.play().catch(() => setVideoFailed(true));
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" suppressHydrationWarning>
-        <source src={src} type="video/mp4" />
-      </video>
+      {!videoFailed ? (
+        <video
+          ref={videoRef}
+          autoPlay muted loop playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={() => setVideoFailed(true)}
+          suppressHydrationWarning
+        >
+          <source src={src} type="video/mp4" />
+        </video>
+      ) : (
+        <div className="absolute inset-0 gradient-hero" />
+      )}
       <div className={`absolute inset-0 ${overlay}`} />
       <div className="relative z-10 w-full">{children}</div>
     </div>
@@ -142,18 +171,18 @@ export default function LandingPage() {
             {/* Badge */}
             <div className="animate-fade-in-down inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-white/80 mb-8">
               <Zap className="h-3.5 w-3.5 text-amber-400" />
-              Plataforma #1 de Contabilidad en Guatemala
+              QuickBooks + TurboTax para Guatemala
             </div>
 
             <h1 className="animate-fade-in-up text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
-              Contabilidad{" "}
-              <span className="gradient-text">Inteligente</span>
+              Impuestos y{" "}
+              <span className="gradient-text">Contabilidad</span>
               <br />para Guatemala
             </h1>
 
             <p className="animate-fade-in-up delay-200 mt-6 text-lg sm:text-xl text-white/60 max-w-xl leading-relaxed">
-              Facturación FEL, impuestos, planilla e IGSS — todo automatizado
-              en una plataforma premium diseñada para empresas guatemaltecas.
+              Calcula tus impuestos personales o gestiona la contabilidad de tu empresa.
+              Facturación FEL, ISR, IVA, planilla e IGSS — todo en un solo lugar.
             </p>
 
             <div className="animate-fade-in-up delay-300 mt-10 flex flex-wrap items-center gap-4">
@@ -357,7 +386,7 @@ export default function LandingPage() {
             <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
           </Link>
           <p className="text-xs text-white/30">
-            © {new Date().getFullYear()} FiniTax Guatemala. Todos los derechos reservados.
+            © {new Date().getFullYear()} Fini Tax GT. Todos los derechos reservados.
           </p>
           <div className="flex gap-6 text-xs text-white/30">
             <a href="#" className="hover:text-white/60 transition-colors">Privacidad</a>
