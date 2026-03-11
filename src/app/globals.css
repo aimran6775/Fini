@@ -46,17 +46,18 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-@keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fade-in-down { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scale-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes slide-up { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
 @keyframes gradient-x { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-@keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -25px) scale(1.07); } 66% { transform: translate(-20px, 18px) scale(0.94); } }
+@keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(40px, -30px) scale(1.1); } 66% { transform: translate(-25px, 20px) scale(0.92); } }
 @keyframes scroll-hint { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(8px); } }
 @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px 0 rgba(99, 102, 241, 0.3); } 50% { box-shadow: 0 0 30px 5px rgba(99, 102, 241, 0.5); } }
+
 
 @layer base {
   * { @apply border-border; }
@@ -119,6 +120,9 @@
   .gradient-hero {
     background: linear-gradient(135deg, #050514 0%, #0c0a2a 25%, #1a1650 50%, #0d1f3c 75%, #050a14 100%);
   }
+  .bg-gradient-radial {
+    background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+  }
   .dot-pattern {
     background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
     background-size: 24px 24px;
@@ -157,4 +161,3 @@
     animation: pulse-glow 2s ease-in-out infinite;
   }
 }
-@keyframes pulse-glow { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(99,102,241,0.4); } 50% { opacity: 0.85; box-shadow: 0 0 20px 4px rgba(99,102,241,0.2); } }

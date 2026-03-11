@@ -2,99 +2,54 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FiniTaxLogo, FiniTaxMark } from "@/components/logo";
+import { FiniTaxLogo } from "@/components/logo";
 import {
   FileText, BarChart3, Shield, Users, Building2, Calculator,
   ArrowRight, ChevronDown, CheckCircle2, Zap, TrendingUp,
-  Globe2, Lock, Star,
+  Globe2, Lock, Star, Sparkles, Receipt, PiggyBank,
+  Menu, X,
 } from "lucide-react";
 
-/* ── Local video served from public/ ──────────────────────────── */
-const HERO_VIDEO = "/videos/hero.mp4";
-const CTA_VIDEO  = "/videos/hero.mp4";
-
-/* ── Data ─────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════════════════════════════ */
 const features = [
-  { icon: FileText,   title: "Facturación FEL", desc: "Emisión de facturas electrónicas certificadas por SAT en tiempo real. DTE, facturas especiales, notas de crédito y más." },
-  { icon: Calculator, title: "Cálculo de Impuestos", desc: "IVA, ISR, ISO e IGSS calculados automáticamente según las leyes vigentes de Guatemala." },
-  { icon: BarChart3,  title: "Reportes Financieros", desc: "Balance general, estado de resultados y flujo de efectivo generados al instante." },
-  { icon: Users,      title: "Planilla & IGSS", desc: "Gestión completa de nómina con cálculo automático de IGSS patronal y laboral." },
-  { icon: Building2,  title: "Multi-Empresa", desc: "Administre múltiples organizaciones desde un solo panel con aislamiento total de datos." },
-  { icon: Shield,     title: "Seguridad Bancaria", desc: "Encriptación de nivel bancario, autenticación segura y respaldos automáticos diarios." },
+  { icon: FileText,   title: "Facturación FEL", desc: "Facturas electrónicas certificadas por SAT. DTE, notas de crédito, facturas especiales." },
+  { icon: Calculator, title: "Impuestos Automáticos", desc: "IVA, ISR, ISO e IGSS calculados según las leyes vigentes de Guatemala." },
+  { icon: BarChart3,  title: "Reportes Financieros", desc: "Balance general, estado de resultados y flujo de efectivo al instante." },
+  { icon: Users,      title: "Planilla & IGSS", desc: "Nómina completa con cálculo automático de IGSS patronal y laboral." },
+  { icon: Building2,  title: "Multi-Empresa", desc: "Administre múltiples organizaciones desde un solo panel." },
+  { icon: Shield,     title: "Seguridad Total", desc: "Encriptación bancaria, autenticación segura y respaldos diarios." },
 ];
 
 const taxItems = [
-  { label: "IVA (12%)", detail: "Incluido en precio, extracción automática" },
-  { label: "ISR Utilidades (25%)", detail: "Régimen sobre utilidades de actividades lucrativas" },
-  { label: "ISR Simplificado (5%/7%)", detail: "Régimen opcional simplificado sobre ingresos" },
-  { label: "ISO (1%)", detail: "Impuesto de solidaridad trimestral" },
-  { label: "IGSS Laboral (4.83%)", detail: "Cuota del trabajador" },
-  { label: "IGSS Patronal (10.67%)", detail: "Cuota del empleador" },
-  { label: "Retención ISR", detail: "Cálculo automático según tabla progresiva" },
-  { label: "Bono 14 & Aguinaldo", detail: "Provisión mensual automática" },
+  { label: "IVA 12%", detail: "Extracción automática del precio", icon: Receipt },
+  { label: "ISR 25%", detail: "Régimen sobre utilidades", icon: Calculator },
+  { label: "ISR 5%/7%", detail: "Régimen simplificado", icon: TrendingUp },
+  { label: "ISO 1%", detail: "Impuesto de solidaridad", icon: PiggyBank },
+  { label: "IGSS 4.83%", detail: "Cuota laboral", icon: Users },
+  { label: "IGSS 10.67%", detail: "Cuota patronal", icon: Building2 },
 ];
 
 const steps = [
-  { num: "01", title: "Cree su Cuenta", desc: "Regístrese en segundos y configure su empresa con nuestro asistente inteligente." },
-  { num: "02", title: "Configure su Empresa", desc: "Ingrese su NIT, datos fiscales y personalice su plan de cuentas contable." },
-  { num: "03", title: "Empiece a Facturar", desc: "Emita facturas FEL, registre gastos y genere reportes desde el primer día." },
+  { num: "1", title: "Cree su Cuenta", desc: "Regístrese gratis en segundos." },
+  { num: "2", title: "Configure", desc: "Ingrese su NIT y datos fiscales." },
+  { num: "3", title: "Facture", desc: "Emita facturas FEL desde el día uno." },
 ];
 
-const kpiData = [
-  { label: "Ingresos", value: "Q 847,320", change: "+12.5%", positive: true },
-  { label: "Gastos", value: "Q 234,150", change: "-3.2%", positive: true },
-  { label: "Utilidad Neta", value: "Q 613,170", change: "+18.7%", positive: true },
+const stats = [
+  { value: 2500, suffix: "+", label: "Empresas" },
+  { value: 150, suffix: "K+", label: "Facturas" },
+  { value: 99.9, suffix: "%", label: "Uptime" },
+  { value: 24, suffix: "/7", label: "Soporte" },
 ];
 
-const chartHeights = [35, 45, 40, 55, 50, 65, 60, 75, 70, 85, 80, 92];
-const chartMonths = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+/* ══════════════════════════════════════════════════════════════════
+   COMPONENTS
+   ══════════════════════════════════════════════════════════════════ */
 
-/* ── VideoBackground Component ───────────────────────────────── */
-function VideoBackground({ src, overlay = "bg-black/60", children, className = "" }: {
-  src: string; overlay?: string; children?: React.ReactNode; className?: string;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoFailed, setVideoFailed] = useState(false);
-
-  useEffect(() => {
-    // On mobile or when video fails, show fallback
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      setVideoFailed(true);
-      return;
-    }
-    const vid = videoRef.current;
-    if (!vid) return;
-    const timeout = setTimeout(() => {
-      if (vid.readyState < 2) setVideoFailed(true);
-    }, 4000);
-    vid.play().catch(() => setVideoFailed(true));
-    return () => clearTimeout(timeout);
-  }, []);
-
-  return (
-    <div className={`relative overflow-hidden ${className}`}>
-      {!videoFailed ? (
-        <video
-          ref={videoRef}
-          autoPlay muted loop playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          onError={() => setVideoFailed(true)}
-          suppressHydrationWarning
-        >
-          <source src={src} type="video/mp4" />
-        </video>
-      ) : (
-        <div className="absolute inset-0 gradient-hero" />
-      )}
-      <div className={`absolute inset-0 ${overlay}`} />
-      <div className="relative z-10 w-full">{children}</div>
-    </div>
-  );
-}
-
-/* ── CountUp animation ───────────────────────────────────────── */
-function CountUp({ target, prefix = "", suffix = "" }: { target: number; prefix?: string; suffix?: string }) {
+/* Animated counter */
+function CountUp({ target, suffix = "", decimals = 0 }: { target: number; suffix?: string; decimals?: number }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
 
@@ -104,28 +59,59 @@ function CountUp({ target, prefix = "", suffix = "" }: { target: number; prefix?
         if (entry.isIntersecting) {
           let start = 0;
           const duration = 2000;
-          const step = (timestamp: number) => {
-            if (!start) start = timestamp;
-            const progress = Math.min((timestamp - start) / duration, 1);
-            setCount(Math.floor(progress * target));
+          const step = (ts: number) => {
+            if (!start) start = ts;
+            const progress = Math.min((ts - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            setCount(target * eased);
             if (progress < 1) requestAnimationFrame(step);
           };
           requestAnimationFrame(step);
           observer.disconnect();
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [target]);
 
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+  return <span ref={ref}>{decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString()}{suffix}</span>;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* Floating orbs background */
+function FloatingOrbs() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Main gradient orbs */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-indigo-600/30 rounded-full blur-[128px] animate-blob" />
+      <div className="absolute top-1/3 right-0 w-80 h-80 bg-purple-600/25 rounded-full blur-[100px] animate-blob delay-2000" />
+      <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-cyan-500/20 rounded-full blur-[90px] animate-blob delay-4000" />
+      {/* Subtle accent orb */}
+      <div className="absolute top-2/3 right-1/4 w-64 h-64 bg-emerald-500/15 rounded-full blur-[80px] animate-float" />
+    </div>
+  );
+}
+
+/* Grid pattern overlay */
+function GridPattern() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03]">
+      <svg className="absolute inset-0 w-full h-full">
+        <defs>
+          <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    MAIN PAGE
-   ═══════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -137,137 +123,167 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050514] text-white">
-      {/* ── Navigation ────────────────────────────────────────── */}
-      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-[#050514]/80 backdrop-blur-2xl border-b border-white/5 shadow-2xl shadow-black/20"
-          : "bg-transparent"
+    <div className="min-h-screen bg-[#030712] text-white overflow-x-hidden">
+      {/* ═══════════════════════════════════════════════════════════
+          NAVIGATION
+          ═══════════════════════════════════════════════════════════ */}
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled ? "bg-[#030712]/80 backdrop-blur-xl border-b border-white/5" : ""
       }`}>
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+        <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 py-4">
           <Link href="/" className="hover:opacity-80 transition-opacity">
-            <FiniTaxLogo size={30} textSize="text-lg" className="text-white sm:hidden" />
-            <FiniTaxLogo size={34} textSize="text-xl" className="text-white hidden sm:flex" />
+            <FiniTaxLogo size={32} textSize="text-lg" className="text-white" />
           </Link>
+
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8 text-sm">
             <a href="#features" className="text-white/60 hover:text-white transition-colors">Funciones</a>
             <a href="#taxes" className="text-white/60 hover:text-white transition-colors">Impuestos</a>
             <a href="#how" className="text-white/60 hover:text-white transition-colors">Cómo Funciona</a>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/login" className="hidden sm:inline-flex text-sm text-white/70 hover:text-white transition-colors px-4 py-2">
+
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="hidden sm:inline-flex text-sm text-white/60 hover:text-white transition-colors px-4 py-2">
               Iniciar Sesión
             </Link>
-            <Link href="/signup" className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white text-[#050514] px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold hover:bg-white/90 transition-all hover:shadow-lg hover:shadow-white/10">
-              <span className="hidden xs:inline">Comenzar</span> Gratis
-              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <Link href="/signup" className="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-5 py-2.5 text-sm font-semibold hover:bg-gray-100 transition-all shadow-lg shadow-white/10">
+              Empezar Gratis
+              <ArrowRight className="h-4 w-4" />
             </Link>
-            {/* Mobile menu button */}
+
+            {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label="Menu"
+              className="md:hidden p-2 text-white/60 hover:text-white"
             >
-              {mobileMenuOpen ? (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-              )}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
-        {/* Mobile menu dropdown */}
+
+        {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/5 bg-[#050514]/95 backdrop-blur-xl">
-            <div className="px-4 py-4 space-y-3">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/70 hover:text-white transition-colors py-2">Funciones</a>
-              <a href="#taxes" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/70 hover:text-white transition-colors py-2">Impuestos</a>
-              <a href="#how" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/70 hover:text-white transition-colors py-2">Cómo Funciona</a>
-              <div className="pt-2 border-t border-white/10">
-                <Link href="/login" className="block text-sm text-white/70 hover:text-white transition-colors py-2">Iniciar Sesión</Link>
+          <div className="md:hidden bg-[#030712]/95 backdrop-blur-xl border-t border-white/5">
+            <div className="px-4 py-6 space-y-4">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">Funciones</a>
+              <a href="#taxes" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">Impuestos</a>
+              <a href="#how" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">Cómo Funciona</a>
+              <div className="pt-4 border-t border-white/10">
+                <Link href="/login" className="block text-white/70 hover:text-white py-2">Iniciar Sesión</Link>
               </div>
             </div>
           </div>
         )}
       </nav>
 
-      {/* ── Hero ──────────────────────────────────────────────── */}
-      <VideoBackground src={HERO_VIDEO} overlay="bg-gradient-to-b from-[#050514]/70 via-[#050514]/50 to-[#050514]" className="min-h-screen flex items-center">
-        <div className="mx-auto max-w-7xl px-6 pt-32 pb-20">
-          <div className="max-w-3xl">
+      {/* ═══════════════════════════════════════════════════════════
+          HERO SECTION
+          ═══════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-screen flex items-center justify-center pt-20">
+        <FloatingOrbs />
+        <GridPattern />
+        
+        {/* Radial gradient spotlight */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-radial from-indigo-500/20 via-transparent to-transparent blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 py-20 sm:py-32">
+          <div className="text-center max-w-4xl mx-auto">
             {/* Badge */}
-            <div className="animate-fade-in-down inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-white/80 mb-8">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              QuickBooks + TurboTax para Guatemala
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm text-white/70 mb-8 backdrop-blur-sm animate-fade-in">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              <span>El TurboTax + QuickBooks de Guatemala</span>
             </div>
 
-            <h1 className="animate-fade-in-up text-4xl xs:text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 animate-fade-in-up">
               Impuestos y{" "}
-              <span className="gradient-text">Contabilidad</span>
-              <br />para Guatemala
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Contabilidad
+              </span>
+              <br />
+              <span className="text-white/90">para Guatemala</span>
             </h1>
 
-            <p className="animate-fade-in-up delay-200 mt-6 text-lg sm:text-xl text-white/60 max-w-xl leading-relaxed">
-              Calcula tus impuestos personales o gestiona la contabilidad de tu empresa.
+            {/* Subheadline */}
+            <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up delay-100">
+              Calcula tus impuestos personales o gestiona tu empresa.
               Facturación FEL, ISR, IVA, planilla e IGSS — todo en un solo lugar.
             </p>
 
-            <div className="animate-fade-in-up delay-300 mt-10 flex flex-wrap items-center gap-4">
-              <Link href="/signup" className="group inline-flex items-center gap-2 rounded-full gradient-premium px-8 py-4 text-base font-semibold text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:scale-[1.02]">
-                Empezar Gratis
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up delay-200">
+              <Link href="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/30 transition-all hover:scale-[1.02]">
+                Crear Cuenta Gratis
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              <a href="#features" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm px-6 py-4 text-sm font-medium text-white/80 hover:bg-white/10 transition-all">
-                Ver Funciones
+              <a href="#features" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-medium text-white/80 hover:bg-white/10 transition-all">
+                Explorar Funciones
               </a>
             </div>
 
             {/* Trust badges */}
-            <div className="animate-fade-in-up delay-500 mt-12 flex flex-wrap items-center gap-6 text-xs text-white/40">
-              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Encriptación SSL</div>
-              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Certificado SAT</div>
-              <div className="flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5" /> Hecho en Guatemala</div>
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm text-white/40 animate-fade-in-up delay-300">
+              <div className="flex items-center gap-2"><Lock className="h-4 w-4" /> SSL Seguro</div>
+              <div className="flex items-center gap-2"><Shield className="h-4 w-4" /> Certificado SAT</div>
+              <div className="flex items-center gap-2"><Globe2 className="h-4 w-4" /> Hecho en Guatemala</div>
             </div>
           </div>
 
-          {/* Scroll hint */}
-          <div className="mt-16 flex justify-center">
-            <ChevronDown className="h-6 w-6 text-white/30 animate-scroll-hint" />
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <ChevronDown className="h-6 w-6 text-white/30" />
           </div>
         </div>
-      </VideoBackground>
+      </section>
 
-      {/* ── Dashboard Mockup ─────────────────────────────────── */}
-      <section className="relative -mt-32 z-10 mx-auto max-w-6xl px-6 pb-24">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] backdrop-blur-xl p-1 shadow-2xl shadow-black/40">
-          <div className="rounded-xl bg-[#0a0a1a] p-6">
-            {/* KPI row */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              {kpiData.map((kpi, i) => (
+      {/* ═══════════════════════════════════════════════════════════
+          DASHBOARD PREVIEW
+          ═══════════════════════════════════════════════════════════ */}
+      <section className="relative -mt-20 z-10 mx-auto max-w-6xl px-4 sm:px-6 pb-24">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl p-1.5 shadow-2xl">
+          <div className="rounded-xl bg-[#0c0c1a] p-4 sm:p-6">
+            {/* Header bar */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <div className="flex-1 mx-4 h-6 rounded-md bg-white/5 flex items-center justify-center">
+                <span className="text-[10px] text-white/30">app.finitax.gt/dashboard</span>
+              </div>
+            </div>
+            
+            {/* KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+              {[
+                { label: "Ingresos", value: "Q 847,320", change: "+12.5%", up: true },
+                { label: "Gastos", value: "Q 234,150", change: "-3.2%", up: true },
+                { label: "Utilidad", value: "Q 613,170", change: "+18.7%", up: true },
+              ].map((kpi, i) => (
                 <div key={i} className="rounded-xl bg-white/[0.04] border border-white/5 p-4 hover:border-white/10 transition-colors">
                   <p className="text-xs text-white/40 mb-1">{kpi.label}</p>
                   <p className="text-xl font-bold text-white">{kpi.value}</p>
-                  <span className={`text-xs font-medium ${kpi.positive ? "text-emerald-400" : "text-red-400"}`}>
+                  <span className={`text-xs font-medium ${kpi.up ? "text-emerald-400" : "text-red-400"}`}>
                     {kpi.change}
                   </span>
                 </div>
               ))}
             </div>
-            {/* Mini chart */}
+
+            {/* Chart placeholder */}
             <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4">
               <p className="text-xs text-white/40 mb-4">Ingresos Mensuales 2024</p>
-              <div className="flex items-end gap-1.5 h-24">
-                {chartHeights.map((h, i) => (
+              <div className="flex items-end gap-1.5 h-20 sm:h-28">
+                {[35, 45, 40, 55, 50, 65, 60, 75, 70, 85, 80, 95].map((h, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
                     <div
-                      className="w-full rounded-sm bg-gradient-to-t from-indigo-500 to-purple-500 opacity-80 hover:opacity-100 transition-opacity"
+                      className="w-full rounded-sm bg-gradient-to-t from-indigo-600 to-purple-500 opacity-80 hover:opacity-100 transition-all hover:scale-105"
                       style={{ height: `${h}%` }}
                     />
-                    <span className="text-[9px] text-white/30">{chartMonths[i]}</span>
+                    <span className="text-[8px] sm:text-[9px] text-white/30 hidden sm:block">
+                      {["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"][i]}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -276,22 +292,45 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────────── */}
-      <section id="features" className="relative py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/[0.03] to-transparent" />
-        <div className="relative mx-auto max-w-7xl px-6">
+      {/* ═══════════════════════════════════════════════════════════
+          STATS BAR
+          ═══════════════════════════════════════════════════════════ */}
+      <section className="border-y border-white/5 py-12 sm:py-16 bg-gradient-to-r from-indigo-950/30 via-purple-950/30 to-indigo-950/30">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {stats.map((stat, i) => (
+              <div key={i}>
+                <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                  <CountUp target={stat.value} suffix={stat.suffix} decimals={stat.suffix === "%" ? 1 : 0} />
+                </p>
+                <p className="mt-1 text-sm text-white/40">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          FEATURES
+          ═══════════════════════════════════════════════════════════ */}
+      <section id="features" className="relative py-24 sm:py-32">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-950/10 to-transparent pointer-events-none" />
+        
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">Funciones Premium</p>
+            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">Funciones</p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              Todo lo que su empresa <span className="gradient-text">necesita</span>
+              Todo lo que su empresa{" "}
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">necesita</span>
             </h2>
             <p className="mt-4 text-white/50 text-lg">
-              Una suite completa de herramientas financieras, diseñada específicamente para el mercado guatemalteco.
+              Herramientas financieras diseñadas para Guatemala.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((f, i) => (
-              <div key={i} className="group rounded-2xl border border-white/5 bg-white/[0.02] p-7 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-500 card-shine">
+              <div key={i} className="group rounded-2xl border border-white/5 bg-white/[0.02] p-6 sm:p-7 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-300">
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
                   <f.icon className="h-6 w-6" />
                 </div>
@@ -303,49 +342,36 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Stats Bar ─────────────────────────────────────────── */}
-      <section className="border-y border-white/5 py-16">
-        <div className="mx-auto max-w-5xl px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { value: 2500, suffix: "+", label: "Empresas Activas" },
-            { value: 150000, suffix: "+", label: "Facturas Emitidas" },
-            { value: 99, suffix: ".9%", label: "Uptime" },
-            { value: 24, suffix: "/7", label: "Soporte" },
-          ].map((s, i) => (
-            <div key={i}>
-              <p className="text-3xl sm:text-4xl font-bold gradient-text">
-                <CountUp target={s.value} suffix={s.suffix} />
-              </p>
-              <p className="mt-1 text-sm text-white/40">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Tax Compliance ────────────────────────────────────── */}
-      <section id="taxes" className="py-28">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div className="lg:sticky lg:top-32">
+      {/* ═══════════════════════════════════════════════════════════
+          TAX COMPLIANCE
+          ═══════════════════════════════════════════════════════════ */}
+      <section id="taxes" className="py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left content */}
+            <div>
               <p className="text-sm font-semibold text-emerald-400 uppercase tracking-widest mb-3">Cumplimiento Fiscal</p>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                Todos los impuestos de <span className="gradient-text">Guatemala</span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                Todos los impuestos de{" "}
+                <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Guatemala</span>
               </h2>
-              <p className="mt-4 text-white/50 text-lg leading-relaxed">
-                Cálculos automáticos y actualizados según las leyes tributarias vigentes de la SAT. Sin errores, sin multas.
+              <p className="text-white/50 text-lg leading-relaxed mb-8">
+                Cálculos automáticos según las leyes tributarias vigentes de la SAT. Sin errores, sin multas.
               </p>
-              <div className="mt-8 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
                   <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                 </div>
-                <p className="text-sm text-white/60">Actualizado con las leyes tributarias 2024-2025</p>
+                <p className="text-sm text-white/70">Actualizado con las leyes 2025-2026</p>
               </div>
             </div>
-            <div className="space-y-3">
+
+            {/* Right - Tax items grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {taxItems.map((item, i) => (
-                <div key={i} className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-5 hover:border-emerald-500/20 hover:bg-white/[0.04] transition-all">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-bold group-hover:bg-emerald-500/20 transition-colors">
-                    <CheckCircle2 className="h-4 w-4" />
+                <div key={i} className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:border-emerald-500/20 hover:bg-white/[0.04] transition-all">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                    <item.icon className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-semibold text-sm">{item.label}</p>
@@ -358,25 +384,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How It Works ──────────────────────────────────────── */}
-      <section id="how" className="py-28">
-        <div className="mx-auto max-w-5xl px-6">
+      {/* ═══════════════════════════════════════════════════════════
+          HOW IT WORKS
+          ═══════════════════════════════════════════════════════════ */}
+      <section id="how" className="py-24 sm:py-32 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <p className="text-sm font-semibold text-amber-400 uppercase tracking-widest mb-3">Cómo Funciona</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Listo en <span className="gradient-text-gold">3 pasos</span>
+              Listo en{" "}
+              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">3 pasos</span>
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+
+          <div className="grid sm:grid-cols-3 gap-8 sm:gap-6">
             {steps.map((step, i) => (
               <div key={i} className="relative text-center">
-                <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10">
-                  <span className="text-2xl font-bold gradient-text">{step.num}</span>
+                <div className="mb-6 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{step.num}</span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                <p className="text-sm text-white/45 leading-relaxed">{step.desc}</p>
+                <p className="text-sm text-white/45">{step.desc}</p>
+                
+                {/* Connector line */}
                 {i < 2 && (
-                  <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] border-t border-dashed border-white/10" />
+                  <div className="hidden sm:block absolute top-8 left-[calc(50%+48px)] w-[calc(100%-96px)] h-px bg-gradient-to-r from-white/10 to-white/10" />
                 )}
               </div>
             ))}
@@ -384,45 +416,59 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────────── */}
-      <VideoBackground src={CTA_VIDEO} overlay="bg-[#050514]/70" className="py-28">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-white/70 mb-6">
-            <Star className="h-3.5 w-3.5 text-amber-400" />
+      {/* ═══════════════════════════════════════════════════════════
+          FINAL CTA
+          ═══════════════════════════════════════════════════════════ */}
+      <section className="relative py-24 sm:py-32 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/50 to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[128px] pointer-events-none" />
+
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 mb-8 backdrop-blur-sm">
+            <Star className="h-4 w-4 text-amber-400" />
             Únase a miles de empresas guatemaltecas
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
             Lleve su contabilidad al{" "}
-            <span className="gradient-text">siguiente nivel</span>
+            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              siguiente nivel
+            </span>
           </h2>
-          <p className="mt-5 text-lg text-white/50 max-w-xl mx-auto">
-            Empiece hoy y descubra por qué FiniTax es la plataforma preferida de los contadores guatemaltecos.
+
+          <p className="text-lg text-white/50 max-w-xl mx-auto mb-10">
+            Empiece gratis hoy y descubra por qué Fini Tax es la plataforma preferida de los contadores guatemaltecos.
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link href="/signup" className="group inline-flex items-center gap-2 rounded-full bg-white text-[#050514] px-8 py-4 text-base font-semibold hover:bg-white/90 transition-all hover:shadow-xl hover:shadow-white/10 hover:scale-[1.02]">
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white text-gray-900 px-8 py-4 text-base font-semibold hover:bg-gray-100 transition-all shadow-xl shadow-white/10 hover:scale-[1.02]">
               Crear Cuenta Gratis
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
-            <Link href="/login" className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-medium text-white/80 hover:bg-white/10 transition-all">
+            <Link href="/login" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-medium text-white/80 hover:bg-white/10 transition-all">
               Iniciar Sesión
             </Link>
           </div>
         </div>
-      </VideoBackground>
+      </section>
 
-      {/* ── Footer ────────────────────────────────────────────── */}
+      {/* ═══════════════════════════════════════════════════════════
+          FOOTER
+          ═══════════════════════════════════════════════════════════ */}
       <footer className="border-t border-white/5 py-10 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
             <Link href="/" className="hover:opacity-80 transition-opacity">
               <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
             </Link>
-            <div className="flex flex-wrap justify-center gap-6 text-xs text-white/30">
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-white/30">
               <a href="#" className="hover:text-white/60 transition-colors">Privacidad</a>
               <a href="#" className="hover:text-white/60 transition-colors">Términos</a>
+              <a href="#" className="hover:text-white/60 transition-colors">Contacto</a>
             </div>
-            <p className="text-xs text-white/30 text-center sm:text-right">
-              © {new Date().getFullYear()} Fini Tax GT. Todos los derechos reservados.
+            <p className="text-sm text-white/30">
+              © {new Date().getFullYear()} Fini Tax GT
             </p>
           </div>
         </div>
