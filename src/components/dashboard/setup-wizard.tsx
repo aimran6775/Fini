@@ -261,7 +261,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
                 </Label>
                 <Input id="name" placeholder="Juan García López" className="h-12 rounded-xl" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nit" className="text-sm font-medium">NIT</Label>
                   <Input id="nit" placeholder="12345678-9" className="h-12 rounded-xl" value={nit} onChange={(e) => setNit(e.target.value)} />
@@ -273,7 +273,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
                   <p className="text-xs text-muted-foreground">Documento Personal</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">Correo</Label>
                   <Input id="email" type="email" placeholder="correo@gmail.com" className="h-12 rounded-xl" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -317,7 +317,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
                 <Input id="nit" placeholder="12345678-9" className="h-12 rounded-xl" value={nit} onChange={(e) => setNit(e.target.value)} required />
                 <p className="text-xs text-muted-foreground">Número de Identificación Tributaria asignado por SAT</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">Correo de Empresa</Label>
                   <Input id="email" type="email" placeholder="info@empresa.com" className="h-12 rounded-xl" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -334,7 +334,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Tipo de Contribuyente</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   {[{ value: "GENERAL", label: "General", desc: "Obligado a IVA y FEL" }, { value: "PEQUEÑO", label: "Pequeño", desc: "Régimen simplificado" }].map((opt) => (
                     <button key={opt.value} type="button" onClick={() => setContribuyenteType(opt.value)} className={`rounded-xl border p-4 text-left transition-all ${contribuyenteType === opt.value ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/30"}`}>
                       <p className="font-semibold text-sm">{opt.label}</p>
@@ -345,7 +345,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
               </div>
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Régimen de ISR</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   {[{ value: "UTILIDADES", label: "Sobre Utilidades", desc: "25% sobre utilidad neta" }, { value: "SIMPLIFICADO", label: "Simplificado", desc: "5% / 7% sobre ingresos" }].map((opt) => (
                     <button key={opt.value} type="button" onClick={() => setIsrRegime(opt.value)} className={`rounded-xl border p-4 text-left transition-all ${isrRegime === opt.value ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/30"}`}>
                       <p className="font-semibold text-sm">{opt.label}</p>

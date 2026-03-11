@@ -128,6 +128,7 @@ function CountUp({ target, prefix = "", suffix = "" }: { target: number; prefix?
    ═══════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -143,25 +144,55 @@ export default function LandingPage() {
           ? "bg-[#050514]/80 backdrop-blur-2xl border-b border-white/5 shadow-2xl shadow-black/20"
           : "bg-transparent"
       }`}>
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-4">
+        <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
           <Link href="/" className="hover:opacity-80 transition-opacity">
-            <FiniTaxLogo size={34} textSize="text-xl" className="text-white" />
+            <FiniTaxLogo size={30} textSize="text-lg" className="text-white sm:hidden" />
+            <FiniTaxLogo size={34} textSize="text-xl" className="text-white hidden sm:flex" />
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm">
             <a href="#features" className="text-white/60 hover:text-white transition-colors">Funciones</a>
             <a href="#taxes" className="text-white/60 hover:text-white transition-colors">Impuestos</a>
             <a href="#how" className="text-white/60 hover:text-white transition-colors">Cómo Funciona</a>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/login" className="hidden sm:inline-flex text-sm text-white/70 hover:text-white transition-colors px-4 py-2">
               Iniciar Sesión
             </Link>
-            <Link href="/signup" className="inline-flex items-center gap-2 rounded-full bg-white text-[#050514] px-5 py-2.5 text-sm font-semibold hover:bg-white/90 transition-all hover:shadow-lg hover:shadow-white/10">
-              Comenzar Gratis
-              <ArrowRight className="h-4 w-4" />
+            <Link href="/signup" className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white text-[#050514] px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold hover:bg-white/90 transition-all hover:shadow-lg hover:shadow-white/10">
+              <span className="hidden xs:inline">Comenzar</span> Gratis
+              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Link>
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-white/5 bg-[#050514]/95 backdrop-blur-xl">
+            <div className="px-4 py-4 space-y-3">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/70 hover:text-white transition-colors py-2">Funciones</a>
+              <a href="#taxes" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/70 hover:text-white transition-colors py-2">Impuestos</a>
+              <a href="#how" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/70 hover:text-white transition-colors py-2">Cómo Funciona</a>
+              <div className="pt-2 border-t border-white/10">
+                <Link href="/login" className="block text-sm text-white/70 hover:text-white transition-colors py-2">Iniciar Sesión</Link>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ── Hero ──────────────────────────────────────────────── */}
@@ -174,7 +205,7 @@ export default function LandingPage() {
               QuickBooks + TurboTax para Guatemala
             </div>
 
-            <h1 className="animate-fade-in-up text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
+            <h1 className="animate-fade-in-up text-4xl xs:text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
               Impuestos y{" "}
               <span className="gradient-text">Contabilidad</span>
               <br />para Guatemala
@@ -380,17 +411,19 @@ export default function LandingPage() {
       </VideoBackground>
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5 py-12">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link href="/" className="hover:opacity-80 transition-opacity">
-            <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
-          </Link>
-          <p className="text-xs text-white/30">
-            © {new Date().getFullYear()} Fini Tax GT. Todos los derechos reservados.
-          </p>
-          <div className="flex gap-6 text-xs text-white/30">
-            <a href="#" className="hover:text-white/60 transition-colors">Privacidad</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Términos</a>
+      <footer className="border-t border-white/5 py-10 sm:py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
+            </Link>
+            <div className="flex flex-wrap justify-center gap-6 text-xs text-white/30">
+              <a href="#" className="hover:text-white/60 transition-colors">Privacidad</a>
+              <a href="#" className="hover:text-white/60 transition-colors">Términos</a>
+            </div>
+            <p className="text-xs text-white/30 text-center sm:text-right">
+              © {new Date().getFullYear()} Fini Tax GT. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </footer>

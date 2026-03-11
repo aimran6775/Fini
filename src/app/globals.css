@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @theme {
+  /* ── Breakpoints ── */
+  --breakpoint-xs: 475px;
+  
   /* ── Clean neutral system (Linear/Vercel inspired) ── */
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
@@ -53,6 +56,7 @@
 @keyframes gradient-x { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -25px) scale(1.07); } 66% { transform: translate(-20px, 18px) scale(0.94); } }
 @keyframes scroll-hint { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(8px); } }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px 0 rgba(99, 102, 241, 0.3); } 50% { box-shadow: 0 0 30px 5px rgba(99, 102, 241, 0.5); } }
 
 @layer base {
   * { @apply border-border; }
@@ -81,6 +85,7 @@
   .animate-gradient-x   { background-size: 200% 200%; animation: gradient-x 8s ease infinite; }
   .animate-blob         { animation: blob 12s ease-in-out infinite; }
   .animate-scroll-hint  { animation: scroll-hint 2s ease-in-out infinite; }
+  .animate-pulse-glow   { animation: pulse-glow 2s ease-in-out infinite; }
 
   .delay-75  { animation-delay: 75ms; }
   .delay-100 { animation-delay: 100ms; }
