@@ -20,10 +20,19 @@ export default async function DashboardPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/dashboard");
+  // If no membership found, the layout will show SetupWizard instead
+  // Return null since this page won't actually be rendered
+  if (!membership) {
+    return null;
+  }
 
   const orgId = membership.organization_id;
   const org = (membership as any).organization;
+
+  // Handle case where org might be null
+  if (!org) {
+    return null;
+  }
 
   const [invoicesRes, expensesRes, employeesRes, bankRes] = await Promise.all([
     supabase
