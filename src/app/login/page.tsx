@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n";
 import { FiniTaxLogo } from "@/components/logo";
-import { ArrowRight, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, Languages } from "lucide-react";
 
 export default function LoginPage() {
+  const { t, lang, setLang } = useLanguage();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +26,7 @@ export default function LoginPage() {
 
     const { error: err } = await supabase.auth.signInWithPassword({ email, password });
     if (err) {
-      setError("Correo o contraseña incorrectos");
+      setError(t.auth.errorWrongCredentials);
       setLoading(false);
       return;
     }
@@ -38,6 +40,17 @@ export default function LoginPage() {
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[120px] animate-blob" />
       <div className="absolute bottom-[-15%] right-[-10%] w-[400px] h-[400px] rounded-full bg-purple-600/10 blur-[100px] animate-blob delay-2000" />
 
+      {/* Language toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={() => setLang(lang === "es" ? "en" : "es")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
+        >
+          <Languages className="h-4 w-4" />
+          <span className="font-medium">{lang === "es" ? "EN" : "ES"}</span>
+        </button>
+      </div>
+
       <div className="relative z-10 w-full max-w-md mx-4">
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in-down">
@@ -49,8 +62,8 @@ export default function LoginPage() {
         {/* Card */}
         <div className="animate-fade-in-up rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl shadow-black/30">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">Bienvenido de vuelta</h1>
-            <p className="text-sm text-white/45 mt-2">Ingrese a su cuenta para continuar</p>
+            <h1 className="text-2xl font-bold text-white">{t.auth.loginTitle}</h1>
+            <p className="text-sm text-white/45 mt-2">{t.auth.loginSubtitle}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -62,7 +75,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                Correo Electrónico
+                {t.auth.email}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
@@ -80,7 +93,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                  Contraseña
+                  {t.auth.password}
                 </label>
               </div>
               <div className="relative">
@@ -112,7 +125,7 @@ export default function LoginPage() {
                 <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
               ) : (
                 <>
-                  Iniciar Sesión
+                  {t.auth.loginButton}
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -121,9 +134,9 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-white/35">
-              ¿No tiene cuenta?{" "}
+              {t.auth.noAccount}{" "}
               <Link href="/signup" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-                Regístrese gratis
+                {t.auth.registerFree}
               </Link>
             </p>
           </div>

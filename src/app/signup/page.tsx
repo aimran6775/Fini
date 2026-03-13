@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n";
 import { FiniTaxLogo } from "@/components/logo";
-import { ArrowRight, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, User, Languages } from "lucide-react";
 
 export default function SignupPage() {
+  const { t, lang, setLang } = useLanguage();
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,7 +48,7 @@ export default function SignupPage() {
       router.push("/dashboard");
     } else if (data.user?.identities?.length === 0) {
       // User already exists
-      setError("Ya existe una cuenta con este correo electrónico");
+      setError(t.auth.errorAccountExists);
       setLoading(false);
     } else {
       setEmailSent(true);
@@ -58,17 +60,29 @@ export default function SignupPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#050514] relative overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] animate-blob" />
+        
+        {/* Language toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={() => setLang(lang === "es" ? "en" : "es")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <Languages className="h-4 w-4" />
+            <span className="font-medium">{lang === "es" ? "EN" : "ES"}</span>
+          </button>
+        </div>
+
         <div className="relative z-10 w-full max-w-md mx-4">
           <div className="animate-fade-in-up rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 text-center">
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 mb-6">
               <Mail className="h-8 w-8 text-emerald-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Revise su correo</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">{t.auth.checkEmail}</h1>
             <p className="text-sm text-white/45 mb-6">
-              Enviamos un enlace de verificación a <span className="text-white/70">{email}</span>
+              {t.auth.emailSent} <span className="text-white/70">{email}</span>
             </p>
             <Link href="/login" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
-              Volver al inicio de sesión
+              {t.auth.backToLogin}
             </Link>
           </div>
         </div>
@@ -82,6 +96,17 @@ export default function SignupPage() {
       <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] animate-blob" />
       <div className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/10 blur-[100px] animate-blob delay-2000" />
 
+      {/* Language toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={() => setLang(lang === "es" ? "en" : "es")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
+        >
+          <Languages className="h-4 w-4" />
+          <span className="font-medium">{lang === "es" ? "EN" : "ES"}</span>
+        </button>
+      </div>
+
       <div className="relative z-10 w-full max-w-md mx-4">
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in-down">
@@ -93,8 +118,8 @@ export default function SignupPage() {
         {/* Card */}
         <div className="animate-fade-in-up rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl shadow-black/30">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">Crear Cuenta</h1>
-            <p className="text-sm text-white/45 mt-2">Empiece a gestionar su contabilidad hoy</p>
+            <h1 className="text-2xl font-bold text-white">{t.auth.signupTitle}</h1>
+            <p className="text-sm text-white/45 mt-2">{t.auth.signupSubtitle}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -106,7 +131,7 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                Nombre Completo
+                {t.auth.fullName}
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
@@ -123,7 +148,7 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                Correo Electrónico
+                {t.auth.email}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
@@ -140,7 +165,7 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                Contraseña
+                {t.auth.password}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
@@ -151,7 +176,7 @@ export default function SignupPage() {
                   required
                   minLength={6}
                   className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-12 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={t.auth.minChars}
                 />
                 <button
                   type="button"
@@ -172,7 +197,7 @@ export default function SignupPage() {
                 <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
               ) : (
                 <>
-                  Crear Cuenta
+                  {t.auth.signupButton}
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -181,9 +206,9 @@ export default function SignupPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-white/35">
-              ¿Ya tiene cuenta?{" "}
+              {t.auth.hasAccount}{" "}
               <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-                Iniciar sesión
+                {t.auth.loginLink}
               </Link>
             </p>
           </div>

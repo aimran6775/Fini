@@ -3,46 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { FiniTaxLogo } from "@/components/logo";
+import { useLanguage } from "@/lib/i18n";
 import {
   FileText, BarChart3, Shield, Users, Building2, Calculator,
-  ArrowRight, ChevronDown, CheckCircle2, Zap, TrendingUp,
+  ArrowRight, ChevronDown, CheckCircle2, TrendingUp,
   Globe2, Lock, Star, Sparkles, Receipt, PiggyBank,
-  Menu, X,
+  Menu, X, Languages,
 } from "lucide-react";
-
-/* ══════════════════════════════════════════════════════════════════
-   DATA
-   ══════════════════════════════════════════════════════════════════ */
-const features = [
-  { icon: FileText,   title: "Facturación FEL", desc: "Facturas electrónicas certificadas por SAT. DTE, notas de crédito, facturas especiales." },
-  { icon: Calculator, title: "Impuestos Automáticos", desc: "IVA, ISR, ISO e IGSS calculados según las leyes vigentes de Guatemala." },
-  { icon: BarChart3,  title: "Reportes Financieros", desc: "Balance general, estado de resultados y flujo de efectivo al instante." },
-  { icon: Users,      title: "Planilla & IGSS", desc: "Nómina completa con cálculo automático de IGSS patronal y laboral." },
-  { icon: Building2,  title: "Multi-Empresa", desc: "Administre múltiples organizaciones desde un solo panel." },
-  { icon: Shield,     title: "Seguridad Total", desc: "Encriptación bancaria, autenticación segura y respaldos diarios." },
-];
-
-const taxItems = [
-  { label: "IVA 12%", detail: "Extracción automática del precio", icon: Receipt },
-  { label: "ISR 25%", detail: "Régimen sobre utilidades", icon: Calculator },
-  { label: "ISR 5%/7%", detail: "Régimen simplificado", icon: TrendingUp },
-  { label: "ISO 1%", detail: "Impuesto de solidaridad", icon: PiggyBank },
-  { label: "IGSS 4.83%", detail: "Cuota laboral", icon: Users },
-  { label: "IGSS 10.67%", detail: "Cuota patronal", icon: Building2 },
-];
-
-const steps = [
-  { num: "1", title: "Cree su Cuenta", desc: "Regístrese gratis en segundos." },
-  { num: "2", title: "Configure", desc: "Ingrese su NIT y datos fiscales." },
-  { num: "3", title: "Facture", desc: "Emita facturas FEL desde el día uno." },
-];
-
-const stats = [
-  { value: 2500, suffix: "+", label: "Empresas" },
-  { value: 150, suffix: "K+", label: "Facturas" },
-  { value: 99.9, suffix: "%", label: "Uptime" },
-  { value: 24, suffix: "/7", label: "Soporte" },
-];
 
 /* ══════════════════════════════════════════════════════════════════
    COMPONENTS
@@ -62,7 +29,7 @@ function CountUp({ target, suffix = "", decimals = 0 }: { target: number; suffix
           const step = (ts: number) => {
             if (!start) start = ts;
             const progress = Math.min((ts - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
             setCount(target * eased);
             if (progress < 1) requestAnimationFrame(step);
           };
@@ -79,24 +46,19 @@ function CountUp({ target, suffix = "", decimals = 0 }: { target: number; suffix
   return <span ref={ref}>{decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString()}{suffix}</span>;
 }
 
-/* Floating orbs background */
-function FloatingOrbs() {
-  return null; // Using static image instead
-}
-
-/* Grid pattern overlay */
-function GridPattern() {
+/* Language Toggle */
+function LanguageToggle() {
+  const { lang, setLang } = useLanguage();
+  
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03]">
-      <svg className="absolute inset-0 w-full h-full">
-        <defs>
-          <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-      </svg>
-    </div>
+    <button
+      onClick={() => setLang(lang === "es" ? "en" : "es")}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
+      title={lang === "es" ? "Switch to English" : "Cambiar a Español"}
+    >
+      <Languages className="h-4 w-4" />
+      <span className="font-medium">{lang === "es" ? "EN" : "ES"}</span>
+    </button>
   );
 }
 
@@ -104,6 +66,7 @@ function GridPattern() {
    MAIN PAGE
    ══════════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -112,6 +75,41 @@ export default function LandingPage() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Feature icons mapping
+  const featureData = [
+    { icon: FileText,   ...t.features.fel },
+    { icon: Calculator, ...t.features.taxes },
+    { icon: BarChart3,  ...t.features.reports },
+    { icon: Users,      ...t.features.payroll },
+    { icon: Building2,  ...t.features.multiCompany },
+    { icon: Shield,     ...t.features.security },
+  ];
+
+  // Tax items
+  const taxItems = [
+    { ...t.taxCompliance.iva, icon: Receipt },
+    { ...t.taxCompliance.isr25, icon: Calculator },
+    { ...t.taxCompliance.isr5, icon: TrendingUp },
+    { ...t.taxCompliance.iso, icon: PiggyBank },
+    { ...t.taxCompliance.igssEmployee, icon: Users },
+    { ...t.taxCompliance.igssEmployer, icon: Building2 },
+  ];
+
+  // Steps
+  const steps = [
+    { num: "1", ...t.howItWorks.step1 },
+    { num: "2", ...t.howItWorks.step2 },
+    { num: "3", ...t.howItWorks.step3 },
+  ];
+
+  // Stats
+  const stats = [
+    { value: 2500, suffix: "+", label: t.stats.companies },
+    { value: 150, suffix: "K+", label: t.stats.invoices },
+    { value: 99.9, suffix: "%", label: t.stats.uptime },
+    { value: 24, suffix: "/7", label: t.stats.support },
+  ];
 
   return (
     <div className="min-h-screen bg-[#030712] text-white overflow-x-hidden">
@@ -128,17 +126,20 @@ export default function LandingPage() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8 text-sm">
-            <a href="#features" className="text-white/60 hover:text-white transition-colors">Funciones</a>
-            <a href="#taxes" className="text-white/60 hover:text-white transition-colors">Impuestos</a>
-            <a href="#how" className="text-white/60 hover:text-white transition-colors">Cómo Funciona</a>
+            <a href="#features" className="text-white/60 hover:text-white transition-colors">{t.nav.features}</a>
+            <a href="#taxes" className="text-white/60 hover:text-white transition-colors">{t.nav.taxes}</a>
+            <a href="#how" className="text-white/60 hover:text-white transition-colors">{t.nav.howItWorks}</a>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Language Toggle */}
+            <LanguageToggle />
+            
             <Link href="/login" className="hidden sm:inline-flex text-sm text-white/60 hover:text-white transition-colors px-4 py-2">
-              Iniciar Sesión
+              {t.nav.login}
             </Link>
             <Link href="/signup" className="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-5 py-2.5 text-sm font-semibold hover:bg-gray-100 transition-all shadow-lg shadow-white/10">
-              Empezar Gratis
+              {t.nav.signup}
               <ArrowRight className="h-4 w-4" />
             </Link>
 
@@ -156,11 +157,11 @@ export default function LandingPage() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#030712]/95 backdrop-blur-xl border-t border-white/5">
             <div className="px-4 py-6 space-y-4">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">Funciones</a>
-              <a href="#taxes" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">Impuestos</a>
-              <a href="#how" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">Cómo Funciona</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">{t.nav.features}</a>
+              <a href="#taxes" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">{t.nav.taxes}</a>
+              <a href="#how" onClick={() => setMobileMenuOpen(false)} className="block text-white/70 hover:text-white py-2">{t.nav.howItWorks}</a>
               <div className="pt-4 border-t border-white/10">
-                <Link href="/login" className="block text-white/70 hover:text-white py-2">Iniciar Sesión</Link>
+                <Link href="/login" className="block text-white/70 hover:text-white py-2">{t.nav.login}</Link>
               </div>
             </div>
           </div>
@@ -184,41 +185,40 @@ export default function LandingPage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm text-white/70 mb-8 backdrop-blur-sm animate-fade-in">
               <Sparkles className="h-4 w-4 text-amber-400" />
-              <span>El TurboTax + QuickBooks de Guatemala</span>
+              <span>{t.hero.badge}</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 animate-fade-in-up">
-              Impuestos y{" "}
+              {t.hero.title1}{" "}
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Contabilidad
+                {t.hero.titleHighlight}
               </span>
               <br />
-              <span className="text-white/90">para Guatemala</span>
+              <span className="text-white/90">{t.hero.title2}</span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up delay-100">
-              Calcula tus impuestos personales o gestiona tu empresa.
-              Facturación FEL, ISR, IVA, planilla e IGSS — todo en un solo lugar.
+              {t.hero.subtitle}
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up delay-200">
               <Link href="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/30 transition-all hover:scale-[1.02]">
-                Crear Cuenta Gratis
+                {t.hero.cta}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <a href="#features" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-medium text-white/80 hover:bg-white/10 transition-all">
-                Explorar Funciones
+                {t.hero.ctaSecondary}
               </a>
             </div>
 
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm text-white/40 animate-fade-in-up delay-300">
-              <div className="flex items-center gap-2"><Lock className="h-4 w-4" /> SSL Seguro</div>
-              <div className="flex items-center gap-2"><Shield className="h-4 w-4" /> Certificado SAT</div>
-              <div className="flex items-center gap-2"><Globe2 className="h-4 w-4" /> Hecho en Guatemala</div>
+              <div className="flex items-center gap-2"><Lock className="h-4 w-4" /> {t.hero.trustSsl}</div>
+              <div className="flex items-center gap-2"><Shield className="h-4 w-4" /> {t.hero.trustSat}</div>
+              <div className="flex items-center gap-2"><Globe2 className="h-4 w-4" /> {t.hero.trustGuatemala}</div>
             </div>
           </div>
 
@@ -250,9 +250,9 @@ export default function LandingPage() {
             {/* KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
               {[
-                { label: "Ingresos", value: "Q 847,320", change: "+12.5%", up: true },
-                { label: "Gastos", value: "Q 234,150", change: "-3.2%", up: true },
-                { label: "Utilidad", value: "Q 613,170", change: "+18.7%", up: true },
+                { label: t.dashboard.income, value: "Q 847,320", change: "+12.5%", up: true },
+                { label: t.dashboard.expenses, value: "Q 234,150", change: "-3.2%", up: true },
+                { label: t.dashboard.profit, value: "Q 613,170", change: "+18.7%", up: true },
               ].map((kpi, i) => (
                 <div key={i} className="rounded-xl bg-white/[0.04] border border-white/5 p-4 hover:border-white/10 transition-colors">
                   <p className="text-xs text-white/40 mb-1">{kpi.label}</p>
@@ -266,7 +266,7 @@ export default function LandingPage() {
 
             {/* Chart placeholder */}
             <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4">
-              <p className="text-xs text-white/40 mb-4">Ingresos Mensuales 2024</p>
+              <p className="text-xs text-white/40 mb-4">{t.dashboard.monthlyIncome}</p>
               <div className="flex items-end gap-1.5 h-20 sm:h-28">
                 {[35, 45, 40, 55, 50, 65, 60, 75, 70, 85, 80, 95].map((h, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -311,18 +311,18 @@ export default function LandingPage() {
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">Funciones</p>
+            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">{t.features.title}</p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              Todo lo que su empresa{" "}
-              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">necesita</span>
+              {t.features.heading}{" "}
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{t.features.headingHighlight}</span>
             </h2>
             <p className="mt-4 text-white/50 text-lg">
-              Herramientas financieras diseñadas para Guatemala.
+              {t.features.subtitle}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {features.map((f, i) => (
+            {featureData.map((f, i) => (
               <div key={i} className="group rounded-2xl border border-white/5 bg-white/[0.02] p-6 sm:p-7 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-300">
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
                   <f.icon className="h-6 w-6" />
@@ -343,19 +343,19 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left content */}
             <div>
-              <p className="text-sm font-semibold text-emerald-400 uppercase tracking-widest mb-3">Cumplimiento Fiscal</p>
+              <p className="text-sm font-semibold text-emerald-400 uppercase tracking-widest mb-3">{t.taxCompliance.title}</p>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-                Todos los impuestos de{" "}
-                <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Guatemala</span>
+                {t.taxCompliance.heading}{" "}
+                <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">{t.taxCompliance.headingHighlight}</span>
               </h2>
               <p className="text-white/50 text-lg leading-relaxed mb-8">
-                Cálculos automáticos según las leyes tributarias vigentes de la SAT. Sin errores, sin multas.
+                {t.taxCompliance.subtitle}
               </p>
               <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
                   <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                 </div>
-                <p className="text-sm text-white/70">Actualizado con las leyes 2025-2026</p>
+                <p className="text-sm text-white/70">{t.taxCompliance.updated}</p>
               </div>
             </div>
 
@@ -383,10 +383,10 @@ export default function LandingPage() {
       <section id="how" className="py-24 sm:py-32 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-amber-400 uppercase tracking-widest mb-3">Cómo Funciona</p>
+            <p className="text-sm font-semibold text-amber-400 uppercase tracking-widest mb-3">{t.howItWorks.title}</p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Listo en{" "}
-              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">3 pasos</span>
+              {t.howItWorks.heading}{" "}
+              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">{t.howItWorks.headingHighlight}</span>
             </h2>
           </div>
 
@@ -420,27 +420,27 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 mb-8 backdrop-blur-sm">
             <Star className="h-4 w-4 text-amber-400" />
-            Únase a miles de empresas guatemaltecas
+            {t.cta.badge}
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
-            Lleve su contabilidad al{" "}
+            {t.cta.heading}{" "}
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              siguiente nivel
+              {t.cta.headingHighlight}
             </span>
           </h2>
 
           <p className="text-lg text-white/50 max-w-xl mx-auto mb-10">
-            Empiece gratis hoy y descubra por qué Fini Tax es la plataforma preferida de los contadores guatemaltecos.
+            {t.cta.subtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-white text-gray-900 px-8 py-4 text-base font-semibold hover:bg-gray-100 transition-all shadow-xl shadow-white/10 hover:scale-[1.02]">
-              Crear Cuenta Gratis
+              {t.cta.button}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link href="/login" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-8 py-4 text-base font-medium text-white/80 hover:bg-white/10 transition-all">
-              Iniciar Sesión
+              {t.cta.buttonSecondary}
             </Link>
           </div>
         </div>
@@ -456,9 +456,9 @@ export default function LandingPage() {
               <FiniTaxLogo size={28} textSize="text-base" className="text-white/60" />
             </Link>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-white/30">
-              <a href="#" className="hover:text-white/60 transition-colors">Privacidad</a>
-              <a href="#" className="hover:text-white/60 transition-colors">Términos</a>
-              <a href="#" className="hover:text-white/60 transition-colors">Contacto</a>
+              <a href="#" className="hover:text-white/60 transition-colors">{t.footer.privacy}</a>
+              <a href="#" className="hover:text-white/60 transition-colors">{t.footer.terms}</a>
+              <a href="#" className="hover:text-white/60 transition-colors">{t.footer.contact}</a>
             </div>
             <p className="text-sm text-white/30">
               © {new Date().getFullYear()} Fini Tax GT
