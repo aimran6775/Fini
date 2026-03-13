@@ -4,51 +4,17 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Receipt, FileText } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
-import { InvoiceActions } from "@/components/dashboard/invoice-actions";
+import { formatCurrency } from "@/lib/utils";
 import { ListFilters } from "@/components/dashboard/list-filters";
+import { InvoicesTable } from "@/components/dashboard/invoices-table";
 import { getInvoices } from "@/app/actions/invoices";
-
-const statusColors: Record<string, string> = {
-  DRAFT: "secondary",
-  CERTIFIED: "success",
-  VOIDED: "destructive",
-  ERROR: "destructive",
-};
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Borrador",
   CERTIFIED: "Certificada",
   VOIDED: "Anulada",
   ERROR: "Error",
-};
-
-const paymentStatusColors: Record<string, string> = {
-  UNPAID: "secondary",
-  PARTIAL: "warning",
-  PAID: "success",
-};
-
-const paymentStatusLabels: Record<string, string> = {
-  UNPAID: "Sin Pagar",
-  PARTIAL: "Parcial",
-  PAID: "Pagada",
-};
-
-const felTypeLabels: Record<string, string> = {
-  FACT: "Factura",
-  FCAM: "Factura Cambiaria",
-  FPEQ: "Factura Pequeño Contribuyente",
-  FCAP: "Factura Cambiaria Pequeño",
-  FESP: "Factura Especial",
-  NABN: "Nota de Abono",
-  NDEB: "Nota de Débito",
-  RECI: "Recibo",
-  RDON: "Recibo por Donación",
-  APTS: "Otros",
 };
 
 export default async function InvoicesPage({
@@ -198,60 +164,7 @@ export default async function InvoicesPage({
           <CardTitle>Listado de Facturas ({filteredInvoices.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredInvoices.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">
-              <Receipt className="mx-auto h-12 w-12 mb-3 opacity-50" />
-              <p>No hay facturas que coincidan con tu búsqueda</p>
-              <Link href="/dashboard/invoices/new">
-                <Button variant="outline" className="mt-4">Crear Primera Factura</Button>
-              </Link>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Serie/Número</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Pago</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInvoices.map((inv: any) => (
-                  <TableRow key={inv.id}>
-                    <TableCell className="font-medium">
-                      <Link href={`/dashboard/invoices/${inv.id}`} className="hover:text-primary">
-                        {inv.fel_serie || '—'}-{inv.fel_numero || '—'}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{felTypeLabels[inv.fel_type] || inv.fel_type}</TableCell>
-                    <TableCell>{(inv.contact as any)?.name ?? inv.client_name ?? "CF"}</TableCell>
-                    <TableCell>{formatDate(inv.invoice_date)}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(inv.total)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusColors[inv.status] as any}>
-                        {statusLabels[inv.status] || inv.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={paymentStatusColors[inv.payment_status] as any}>
-                        {paymentStatusLabels[inv.payment_status] || inv.payment_status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <InvoiceActions invoiceId={inv.id} status={inv.status} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <InvoicesTable invoices={filteredInvoices} organizationId={membership.organization_id} />
         </CardContent>
       </Card>
     </div>

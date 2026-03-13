@@ -573,3 +573,121 @@ export async function getInvoiceWithPayments(invoiceId: string) {
     payments: payments || [],
   };
 }
+
+// ─── Bulk Actions ──────────────────────────────────────────────
+
+export async function bulkDeleteInvoices(ids: string[], orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Only allow deleting DRAFT invoices
+  const { data: invoices } = await supabase
+    .from("fel_invoices")
+    .select("id, status")
+    .in("id", ids)
+    .eq("organization_id", orgId);
+
+  const draftIds = invoices?.filter(inv => inv.status === "DRAFT").map(inv => inv.id) || [];
+  
+  if (draftIds.length === 0) {
+    return { error: "Solo se pueden eliminar facturas en borrador" };
+  }
+
+  const { error } = await supabase
+    .from("fel_invoices")
+    .delete()
+    .in("id", draftIds)
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+
+  await logAuditEvent({
+    user_id: user.id,
+    organization_id: orgId,
+    action: "BULK_DELETE",
+    entity_type: "INVOICE",
+    entity_id: null,
+    description: `${draftIds.length} facturas eliminadas`,
+  });
+
+  revalidatePath("/dashboard/invoices");
+  return { success: true, deleted: draftIds.length };
+}
+
+export async function bulkCertifyInvoices(ids: string[], orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Only DRAFT invoices can be certified
+  const { data: invoices } = await supabase
+    .from("fel_invoices")
+    .select("id, status")
+    .in("id", ids)
+    .eq("organization_id", orgId)
+    .eq("status", "DRAFT");
+
+  if (!invoices || invoices.length === 0) {
+    return { error: "No hay facturas en borrador para certificar" };
+  }
+
+  // In production this would call FEL API, for now just update status
+  const { error } = await supabase
+    .from("fel_invoices")
+    .update({ status: "CERTIFIED" })
+    .in("id", invoices.map(inv => inv.id))
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+
+  await logAuditEvent({
+    user_id: user.id,
+    organization_id: orgId,
+    action: "BULK_UPDATE",
+    entity_type: "INVOICE",
+    entity_id: null,
+    description: `${invoices.length} facturas certificadas`,
+  });
+
+  revalidatePath("/dashboard/invoices");
+  return { success: true, certified: invoices.length };
+}
+
+export async function bulkVoidInvoices(ids: string[], orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Only DRAFT or CERTIFIED can be voided
+  const { data: invoices } = await supabase
+    .from("fel_invoices")
+    .select("id, status")
+    .in("id", ids)
+    .eq("organization_id", orgId)
+    .in("status", ["DRAFT", "CERTIFIED"]);
+
+  if (!invoices || invoices.length === 0) {
+    return { error: "No hay facturas que se puedan anular" };
+  }
+
+  const { error } = await supabase
+    .from("fel_invoices")
+    .update({ status: "VOIDED" })
+    .in("id", invoices.map(inv => inv.id))
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+
+  await logAuditEvent({
+    user_id: user.id,
+    organization_id: orgId,
+    action: "BULK_UPDATE",
+    entity_type: "INVOICE",
+    entity_id: null,
+    description: `${invoices.length} facturas anuladas`,
+  });
+
+  revalidatePath("/dashboard/invoices");
+  return { success: true, voided: invoices.length };
+}

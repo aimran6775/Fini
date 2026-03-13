@@ -9,9 +9,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function logAuditEvent(params: {
   organization_id: string;
   user_id: string;
-  action: "CREATE" | "UPDATE" | "DELETE" | "APPROVE" | "CERTIFY" | "VOID";
+  action: "CREATE" | "UPDATE" | "DELETE" | "APPROVE" | "CERTIFY" | "VOID" | "BULK_DELETE" | "BULK_UPDATE";
   entity_type: string;
-  entity_id?: string;
+  entity_id?: string | null;
   description?: string;
   metadata?: Record<string, any>;
 }) {

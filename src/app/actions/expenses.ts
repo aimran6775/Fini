@@ -151,3 +151,82 @@ export async function updateExpense(id: string, formData: FormData) {
   revalidatePath("/dashboard/expenses");
   redirect(`/dashboard/expenses/${id}`);
 }
+
+// ─── Bulk Actions ──────────────────────────────────────────────
+
+export async function bulkDeleteExpenses(ids: string[], orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Only allow deleting DRAFT expenses
+  const { data: expenses } = await supabase
+    .from("expenses")
+    .select("id, status")
+    .in("id", ids)
+    .eq("organization_id", orgId);
+
+  const draftIds = expenses?.filter(exp => exp.status === "DRAFT").map(exp => exp.id) || [];
+  
+  if (draftIds.length === 0) {
+    return { error: "Solo se pueden eliminar gastos en borrador" };
+  }
+
+  const { error } = await supabase
+    .from("expenses")
+    .delete()
+    .in("id", draftIds)
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+
+  await logAuditEvent({
+    user_id: user.id,
+    organization_id: orgId,
+    action: "BULK_DELETE",
+    entity_type: "EXPENSE",
+    entity_id: null,
+    description: `${draftIds.length} gastos eliminados`,
+  });
+
+  revalidatePath("/dashboard/expenses");
+  return { success: true, deleted: draftIds.length };
+}
+
+export async function bulkApproveExpenses(ids: string[], orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Only DRAFT expenses can be approved
+  const { data: expenses } = await supabase
+    .from("expenses")
+    .select("id, status")
+    .in("id", ids)
+    .eq("organization_id", orgId)
+    .eq("status", "DRAFT");
+
+  if (!expenses || expenses.length === 0) {
+    return { error: "No hay gastos en borrador para aprobar" };
+  }
+
+  const { error } = await supabase
+    .from("expenses")
+    .update({ status: "APPROVED", approved_by: user.id })
+    .in("id", expenses.map(exp => exp.id))
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+
+  await logAuditEvent({
+    user_id: user.id,
+    organization_id: orgId,
+    action: "BULK_UPDATE",
+    entity_type: "EXPENSE",
+    entity_id: null,
+    description: `${expenses.length} gastos aprobados`,
+  });
+
+  revalidatePath("/dashboard/expenses");
+  return { success: true, approved: expenses.length };
+}

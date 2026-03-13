@@ -7,7 +7,7 @@ import {
   LayoutDashboard, FileText, Receipt, Landmark, BookOpen, BookMarked,
   Package, Users2, Contact2, Calculator, BarChart3, Boxes, PiggyBank,
   Bot, Bell, ShieldCheck, Settings, ChevronsLeft, ChevronDown,
-  Building2, Check, Wallet,
+  Building2, Check, Wallet, RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -24,6 +24,7 @@ const navGroups = [
       { label: "Facturación FEL", href: "/dashboard/invoices", icon: FileText },
       { label: "Gastos", href: "/dashboard/expenses", icon: Receipt },
       { label: "Bancos", href: "/dashboard/banking", icon: Landmark },
+      { label: "Recurrentes", href: "/dashboard/recurring", icon: RefreshCw },
     ],
   },
   {

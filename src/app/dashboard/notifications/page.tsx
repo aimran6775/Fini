@@ -1,14 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCheck } from "lucide-react";
 import { NotificationsClient } from "@/components/dashboard/notifications-client";
+import { RefreshNotificationsButton } from "@/components/dashboard/refresh-notifications";
 
 export default async function NotificationsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single();
 
   const { data: notifications } = await supabase
     .from("notifications")
@@ -31,6 +37,9 @@ export default async function NotificationsPage() {
             )}
           </p>
         </div>
+        {membership && (
+          <RefreshNotificationsButton organizationId={membership.organization_id} />
+        )}
       </div>
 
       <NotificationsClient notifications={notifications || []} />
