@@ -36,21 +36,30 @@ export default async function DashboardLayout({
       user.email?.split("@")[0] || 
       "Usuario";
     
-    // Create default organization
-    const { data: orgId } = await supabase.rpc("create_organization_with_admin", {
-      p_name: `${displayName}`,
-      p_nit: "CF",
-      p_contribuyente_type: "PEQUEÑO",
-      p_isr_regime: "SIMPLIFICADO",
-      p_address: null,
-      p_municipality: null,
-      p_department: null,
-      p_phone: null,
-      p_email: user.email || null,
-    });
+    // Create default organization using direct insert (simpler than RPC)
+    const { data: newOrg, error: orgError } = await supabase
+      .from("organizations")
+      .insert({
+        name: displayName,
+        nit_number: "CF",
+        contribuyente_type: "PEQUEÑO",
+        isr_regime: "SIMPLIFICADO",
+        email: user.email || null,
+      })
+      .select()
+      .single();
 
-    // Fetch the new membership
-    if (orgId) {
+    if (newOrg && !orgError) {
+      // Add user as admin
+      await supabase
+        .from("organization_members")
+        .insert({
+          organization_id: newOrg.id,
+          user_id: user.id,
+          role: "ADMIN",
+        });
+
+      // Fetch the new membership
       const { data: newMemberships } = await supabase
         .from("organization_members")
         .select(`
