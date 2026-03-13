@@ -55,6 +55,25 @@ export function SetupWizard({ userName }: { userName?: string }) {
     return true;
   };
 
+  // Quick skip - create minimal account
+  const handleSkip = () => {
+    setError(null);
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.set("name", userName || "Mi Cuenta");
+      formData.set("nit", "CF");
+      formData.set("contribuyente_type", "PEQUEÑO");
+      formData.set("isr_regime", "SIMPLIFICADO");
+
+      const result = await createOrganization(formData);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  };
+
   const handleSubmit = () => {
     setError(null);
     startTransition(async () => {
@@ -174,9 +193,24 @@ export function SetupWizard({ userName }: { userName?: string }) {
             </button>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Podrás cambiar esto después en Configuración
-          </p>
+          {error && (
+            <div className="mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600 text-center">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={handleSkip}
+              disabled={isPending}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              {isPending ? "Creando cuenta..." : "Omitir por ahora →"}
+            </button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Podrás completar tu información en Configuración
+            </p>
+          </div>
         </div>
       </div>
     );
