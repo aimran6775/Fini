@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Landmark, Plus } from "lucide-react";
+import { Landmark, Plus, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 
@@ -72,12 +72,17 @@ export default async function BankingPage() {
                   <TableHead>Moneda</TableHead>
                   <TableHead className="text-right">Saldo</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {accounts.map((acc: any) => (
-                  <TableRow key={acc.id}>
-                    <TableCell className="font-medium">{acc.bank_name}</TableCell>
+                  <TableRow key={acc.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      <Link href={`/dashboard/banking/${acc.id}`} className="hover:underline">
+                        {acc.bank_name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="font-mono">{acc.account_number}</TableCell>
                     <TableCell>{acc.account_type}</TableCell>
                     <TableCell>{acc.currency}</TableCell>
@@ -86,6 +91,13 @@ export default async function BankingPage() {
                       <Badge variant={acc.is_active ? "success" : "secondary"}>
                         {acc.is_active ? "Activa" : "Inactiva"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/dashboard/banking/${acc.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

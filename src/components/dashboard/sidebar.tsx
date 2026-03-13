@@ -7,7 +7,7 @@ import {
   LayoutDashboard, FileText, Receipt, Landmark, BookOpen, BookMarked,
   Package, Users2, Contact2, Calculator, BarChart3, Boxes, PiggyBank,
   Bot, Bell, ShieldCheck, Settings, ChevronsLeft, ChevronDown,
-  Building2, Check,
+  Building2, Check, Wallet,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -45,7 +45,8 @@ const navGroups = [
   {
     label: "Fiscal",
     items: [
-      { label: "Impuestos", href: "/dashboard/tax", icon: Calculator },
+      { label: "ISR Personal", href: "/dashboard/personal-tax", icon: Wallet },
+      { label: "Impuestos Empresa", href: "/dashboard/tax", icon: Calculator },
       { label: "Presupuestos", href: "/dashboard/budgets", icon: PiggyBank },
       { label: "Reportes", href: "/dashboard/reports", icon: BarChart3 },
     ],

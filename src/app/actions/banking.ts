@@ -15,6 +15,17 @@ export async function getBankAccounts(orgId: string) {
   return data;
 }
 
+export async function getBankAccount(accountId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bank_accounts")
+    .select("*")
+    .eq("id", accountId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function createBankAccount(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("bank_accounts").insert({
@@ -27,6 +38,188 @@ export async function createBankAccount(formData: FormData) {
     current_balance: parseFloat(formData.get("current_balance") as string || "0"),
     is_active: true,
   });
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/banking");
+  return { success: true };
+}
+
+// ─── Bank Transactions ─────────────────────────────────────────
+
+export async function getBankTransactions(accountId: string, startDate?: string, endDate?: string) {
+  const supabase = await createClient();
+  
+  let query = supabase
+    .from("bank_transactions")
+    .select("*")
+    .eq("bank_account_id", accountId)
+    .order("transaction_date", { ascending: false });
+  
+  if (startDate) {
+    query = query.gte("transaction_date", startDate);
+  }
+  if (endDate) {
+    query = query.lte("transaction_date", endDate);
+  }
+  
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createBankTransaction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const amount = parseFloat(formData.get("amount") as string) || 0;
+  const category = formData.get("category") as string;
+  
+  // Withdrawals and fees are negative, deposits are positive
+  const signedAmount = ["WITHDRAWAL", "FEE", "TRANSFER"].includes(category) && amount > 0 
+    ? -amount 
+    : amount;
+
+  const { error: txnError } = await supabase.from("bank_transactions").insert({
+    bank_account_id: formData.get("bank_account_id") as string,
+    organization_id: formData.get("organization_id") as string,
+    transaction_date: formData.get("transaction_date") as string,
+    description: formData.get("description") as string,
+    amount: signedAmount,
+    category: category,
+    reference: formData.get("reference") as string || null,
+    is_reconciled: false,
+  });
+
+  if (txnError) return { error: txnError.message };
+
+  // Update account balance
+  const accountId = formData.get("bank_account_id") as string;
+  const { data: account } = await supabase
+    .from("bank_accounts")
+    .select("current_balance")
+    .eq("id", accountId)
+    .single();
+  
+  if (account) {
+    await supabase
+      .from("bank_accounts")
+      .update({ current_balance: Number(account.current_balance) + signedAmount })
+      .eq("id", accountId);
+  }
+
+  revalidatePath("/dashboard/banking");
+  return { success: true };
+}
+
+export async function deleteBankTransaction(txnId: string, orgId: string) {
+  const supabase = await createClient();
+  
+  // Get transaction to reverse balance
+  const { data: txn } = await supabase
+    .from("bank_transactions")
+    .select("amount, bank_account_id")
+    .eq("id", txnId)
+    .eq("organization_id", orgId)
+    .single();
+  
+  if (txn) {
+    // Reverse the balance
+    const { data: account } = await supabase
+      .from("bank_accounts")
+      .select("current_balance")
+      .eq("id", txn.bank_account_id)
+      .single();
+    
+    if (account) {
+      await supabase
+        .from("bank_accounts")
+        .update({ current_balance: Number(account.current_balance) - Number(txn.amount) })
+        .eq("id", txn.bank_account_id);
+    }
+  }
+
+  const { error } = await supabase
+    .from("bank_transactions")
+    .delete()
+    .eq("id", txnId)
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/banking");
+  return { success: true };
+}
+
+// ─── Bank Reconciliation ───────────────────────────────────────
+
+export async function getReconciliations(accountId: string) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from("bank_reconciliations")
+    .select("*")
+    .eq("bank_account_id", accountId)
+    .order("period_end", { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createReconciliation(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const statementBalance = parseFloat(formData.get("statement_balance") as string) || 0;
+  const bookBalance = parseFloat(formData.get("book_balance") as string) || 0;
+  const difference = Math.abs(statementBalance - bookBalance);
+
+  const { data, error } = await supabase.from("bank_reconciliations").insert({
+    bank_account_id: formData.get("bank_account_id") as string,
+    organization_id: formData.get("organization_id") as string,
+    period_start: formData.get("period_start") as string,
+    period_end: formData.get("period_end") as string,
+    statement_balance: statementBalance,
+    book_balance: bookBalance,
+    difference: difference,
+    status: difference < 0.01 ? "COMPLETED" : "IN_PROGRESS",
+    reconciled_by: user.id,
+    completed_at: difference < 0.01 ? new Date().toISOString() : null,
+  }).select().single();
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/banking");
+  return { success: true, data };
+}
+
+export async function markTransactionsReconciled(transactionIds: string[], orgId: string) {
+  const supabase = await createClient();
+  
+  const { error } = await supabase
+    .from("bank_transactions")
+    .update({ is_reconciled: true })
+    .in("id", transactionIds)
+    .eq("organization_id", orgId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard/banking");
+  return { success: true };
+}
+
+export async function completeReconciliation(reconciliationId: string, orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("bank_reconciliations")
+    .update({ 
+      status: "COMPLETED",
+      completed_at: new Date().toISOString(),
+      reconciled_by: user.id,
+    })
+    .eq("id", reconciliationId)
+    .eq("organization_id", orgId);
+
   if (error) return { error: error.message };
   revalidatePath("/dashboard/banking");
   return { success: true };

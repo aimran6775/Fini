@@ -100,6 +100,40 @@ export const PAYMENT_STATUS_LABELS: Record<string, string> = {
   PAID: "Pagada",
 };
 
+// Personal income type labels
+export const INCOME_TYPE_LABELS: Record<string, string> = {
+  TRABAJO_DEPENDIENTE: "Trabajo Dependiente (Salarios)",
+  TRABAJO_INDEPENDIENTE: "Trabajo Independiente (Honorarios)",
+  CAPITAL_MOBILIARIO: "Capital Mobiliario (Dividendos, Intereses)",
+  CAPITAL_INMOBILIARIO: "Capital Inmobiliario (Alquileres)",
+  GANANCIAS_CAPITAL: "Ganancias de Capital",
+  OTROS: "Otros Ingresos",
+};
+
+// Personal deduction type labels
+export const DEDUCTION_TYPE_LABELS: Record<string, string> = {
+  STANDARD: "Deducción Fija (Q48,000)",
+  IVA_PERSONAL: "IVA en Compras Personales",
+  DONACIONES: "Donaciones",
+  SEGURO_MEDICO: "Seguro Médico",
+  PLAN_PREVISION: "Plan de Previsión",
+  CUOTAS_IGSS: "Cuotas IGSS",
+  MONTEPIO: "Montepío",
+  VIVIENDA: "Intereses Préstamo Vivienda",
+  EDUCACION: "Educación",
+  OTROS: "Otras Deducciones",
+};
+
+// ISR retention type labels  
+export const RETENTION_TYPE_LABELS: Record<string, string> = {
+  TRABAJO: "Retención sobre Salarios",
+  SERVICIOS: "Servicios Profesionales (5%)",
+  ARRENDAMIENTO: "Arrendamiento",
+  DIVIDENDOS: "Dividendos (5%)",
+  INTERESES: "Intereses",
+  OTROS: "Otras Retenciones",
+};
+
 // Guatemala departments
 export const GUATEMALA_DEPARTMENTS = [
   "Guatemala", "El Progreso", "Sacatepéquez", "Chimaltenango", "Escuintla",
