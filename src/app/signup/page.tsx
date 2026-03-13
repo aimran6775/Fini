@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { FiniTaxLogo } from "@/components/logo";
 import { ArrowRight, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
@@ -17,10 +17,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,10 +42,12 @@ export default function SignupPage() {
 
     // If user is confirmed immediately (email confirmation disabled)
     if (data.user && data.session) {
+      router.refresh();
       router.push("/dashboard");
     } else if (data.user?.identities?.length === 0) {
       // User already exists
       setError("Ya existe una cuenta con este correo electrónico");
+      setLoading(false);
     } else {
       setEmailSent(true);
     }
