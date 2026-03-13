@@ -91,6 +91,8 @@ export type AssetStatus = "ACTIVE" | "FULLY_DEPRECIATED" | "DISPOSED";
 
 export type ContribuyenteType = "GENERAL" | "PEQUENO";
 
+export type PaymentMethod = "EFECTIVO" | "TRANSFERENCIA" | "CHEQUE" | "TARJETA_CREDITO" | "TARJETA_DEBITO" | "DEPOSITO" | "OTRO";
+
 // ─── Core Entities ──────────────────────────────────────────────
 
 export interface Organization {
@@ -229,6 +231,28 @@ export interface FELInvoiceItem {
   iva_amount: number;
   line_total: number;
   bien_o_servicio: "B" | "S";      // Bien (good) or Servicio (service)
+}
+
+// ─── Invoice Payments ──────────────────────────────────────────
+
+export interface InvoicePayment {
+  id: string;
+  invoice_id: string;
+  organization_id: string;
+  amount: number;
+  payment_date: string;
+  payment_method: PaymentMethod;
+  reference_number: string | null;
+  bank_account_id: string | null;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+// Extended invoice with payment info
+export interface FELInvoiceWithPayments extends FELInvoice {
+  amount_paid: number;
+  payments?: InvoicePayment[];
 }
 
 // ─── Expenses ──────────────────────────────────────────────────
@@ -643,6 +667,7 @@ export interface Database {
       journal_entry_lines: { Row: JournalEntryLine; Insert: Omit<JournalEntryLine, "id">; Update: Partial<Omit<JournalEntryLine, "id">> };
       fel_invoices: { Row: FELInvoice; Insert: Omit<FELInvoice, "id" | "created_at" | "updated_at">; Update: Partial<Omit<FELInvoice, "id" | "created_at">> };
       fel_invoice_items: { Row: FELInvoiceItem; Insert: Omit<FELInvoiceItem, "id">; Update: Partial<Omit<FELInvoiceItem, "id">> };
+      invoice_payments: { Row: InvoicePayment; Insert: Omit<InvoicePayment, "id" | "created_at">; Update: Partial<Omit<InvoicePayment, "id" | "created_at">> };
       expenses: { Row: Expense; Insert: Omit<Expense, "id" | "created_at" | "updated_at">; Update: Partial<Omit<Expense, "id" | "created_at">> };
       employees: { Row: Employee; Insert: Omit<Employee, "id" | "created_at" | "updated_at">; Update: Partial<Omit<Employee, "id" | "created_at">> };
       payroll_runs: { Row: PayrollRun; Insert: Omit<PayrollRun, "id" | "created_at" | "updated_at">; Update: Partial<Omit<PayrollRun, "id" | "created_at">> };

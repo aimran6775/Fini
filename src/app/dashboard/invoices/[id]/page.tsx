@@ -2,14 +2,17 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, FileText, Printer, CheckCircle, XCircle, Copy } from "lucide-react";
+import { ArrowLeft, FileText, Printer, CheckCircle, XCircle, CreditCard } from "lucide-react";
 import { formatCurrency, formatDate, formatNIT } from "@/lib/utils";
 import { FEL_TYPE_LABELS, FEL_STATUS_LABELS } from "@/lib/tax-utils";
 import { InvoiceActions } from "@/components/dashboard/invoice-actions";
+import { PaymentRecorder } from "@/components/dashboard/payment-recorder";
+import { PaymentList } from "@/components/dashboard/payment-list";
+import { getInvoiceWithPayments } from "@/app/actions/invoices";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -17,15 +20,38 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: invoice, error } = await supabase
-    .from("fel_invoices")
-    .select(`*, contact:contacts(id, name, nit_number, email, phone, address), items:fel_invoice_items(*)`)
-    .eq("id", id)
+  // Get organization membership
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .limit(1)
     .single();
 
-  if (error || !invoice) notFound();
+  if (!membership) redirect("/onboarding");
+
+  // Get invoice with payments
+  let invoice;
+  try {
+    invoice = await getInvoiceWithPayments(id);
+  } catch {
+    notFound();
+  }
+
+  // Verify organization access
+  if (invoice.organization_id !== membership.organization_id) {
+    notFound();
+  }
+
+  // Get bank accounts for payment recording
+  const { data: bankAccounts } = await supabase
+    .from("bank_accounts")
+    .select("id, account_name, bank_name")
+    .eq("organization_id", membership.organization_id)
+    .eq("is_active", true);
 
   const status = FEL_STATUS_LABELS[invoice.status] || { label: invoice.status, color: "bg-gray-100 text-gray-700" };
+  const remaining = Number(invoice.total) - invoice.amount_paid;
 
   return (
     <div className="space-y-6">
@@ -232,31 +258,91 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           {/* Payment Status */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Pago</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CreditCard className="h-5 w-5" />
+                Estado de Pago
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Estado de Pago</p>
-                <Badge variant={
-                  invoice.payment_status === "PAID" ? "success" :
-                  invoice.payment_status === "PARTIAL" ? "warning" : "secondary"
-                }>
-                  {invoice.payment_status === "PAID" ? "Pagado" :
-                   invoice.payment_status === "PARTIAL" ? "Parcial" : "Pendiente"}
+            <CardContent className="space-y-4">
+              {/* Payment Summary */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Factura:</span>
+                  <span className="font-medium">{formatCurrency(invoice.total)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Pagado:</span>
+                  <span className="font-medium text-green-600">{formatCurrency(invoice.amount_paid)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between">
+                  <span className="font-medium">Saldo Pendiente:</span>
+                  <span className={`font-bold ${remaining > 0 ? "text-destructive" : "text-green-600"}`}>
+                    {formatCurrency(remaining)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Progress Bar */}
+              <div className="space-y-2">
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 transition-all"
+                    style={{ width: `${Math.min((invoice.amount_paid / Number(invoice.total)) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  {((invoice.amount_paid / Number(invoice.total)) * 100).toFixed(0)}% pagado
+                </p>
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex justify-center">
+                <Badge 
+                  variant={
+                    invoice.payment_status === "PAID" ? "success" :
+                    invoice.payment_status === "PARTIAL" ? "warning" : "secondary"
+                  }
+                  className="text-sm"
+                >
+                  {invoice.payment_status === "PAID" ? "✓ Pagado Completamente" :
+                   invoice.payment_status === "PARTIAL" ? "Pago Parcial" : "Pendiente de Pago"}
                 </Badge>
               </div>
+
               {invoice.due_date && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Fecha de Vencimiento</p>
-                  <p>{formatDate(invoice.due_date)}</p>
+                <div className="text-center text-sm text-muted-foreground">
+                  Vencimiento: {formatDate(invoice.due_date)}
                 </div>
               )}
-              <div>
-                <p className="text-sm text-muted-foreground">Moneda</p>
-                <p>{invoice.currency}</p>
-              </div>
+
+              {/* Record Payment Button */}
+              {invoice.status !== "VOIDED" && remaining > 0 && (
+                <PaymentRecorder
+                  invoiceId={invoice.id}
+                  organizationId={membership.organization_id}
+                  maxAmount={remaining}
+                  bankAccounts={bankAccounts || []}
+                />
+              )}
             </CardContent>
           </Card>
+
+          {/* Payment History */}
+          {invoice.payments && invoice.payments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Historial de Pagos</CardTitle>
+                <CardDescription>{invoice.payments.length} pago(s) registrado(s)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PaymentList 
+                  payments={invoice.payments}
+                  organizationId={membership.organization_id}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tax Details */}
           <Card>

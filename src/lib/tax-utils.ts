@@ -82,6 +82,24 @@ export const FEL_STATUS_LABELS: Record<string, { label: string; color: string }>
   VOIDED: { label: "Anulada", color: "bg-orange-100 text-orange-700" },
 };
 
+// Payment method labels
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  EFECTIVO: "Efectivo",
+  TRANSFERENCIA: "Transferencia Bancaria",
+  CHEQUE: "Cheque",
+  TARJETA_CREDITO: "Tarjeta de Crédito",
+  TARJETA_DEBITO: "Tarjeta de Débito",
+  DEPOSITO: "Depósito",
+  OTRO: "Otro",
+};
+
+// Payment status labels
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  UNPAID: "Sin Pagar",
+  PARTIAL: "Pago Parcial",
+  PAID: "Pagada",
+};
+
 // Guatemala departments
 export const GUATEMALA_DEPARTMENTS = [
   "Guatemala", "El Progreso", "Sacatepéquez", "Chimaltenango", "Escuintla",

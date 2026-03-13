@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAuditEvent } from "@/app/actions/audit";
+import { PAYMENT_METHOD_LABELS } from "@/lib/tax-utils";
+import type { PaymentMethod } from "@/lib/types/database";
 
 export async function getInvoices(orgId: string, filters?: {
   status?: string;
@@ -368,4 +370,206 @@ export async function deleteInvoice(invoiceId: string) {
 
   revalidatePath("/dashboard/invoices");
   return { success: true };
+}
+
+// ─── PAYMENT FUNCTIONS ─────────────────────────────────────────
+
+export async function getInvoicePayments(invoiceId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("invoice_payments")
+    .select("*")
+    .eq("invoice_id", invoiceId)
+    .order("payment_date", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function recordPayment(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const invoiceId = formData.get("invoice_id") as string;
+  const orgId = formData.get("organization_id") as string;
+  const amount = parseFloat(formData.get("amount") as string);
+  const paymentDate = formData.get("payment_date") as string;
+  const paymentMethod = (formData.get("payment_method") as string) || "EFECTIVO";
+  const referenceNumber = formData.get("reference_number") as string;
+  const bankAccountId = formData.get("bank_account_id") as string;
+  const notes = formData.get("notes") as string;
+
+  // Validate invoice exists and get its total
+  const { data: invoice } = await supabase
+    .from("fel_invoices")
+    .select("total, client_name, organization_id")
+    .eq("id", invoiceId)
+    .single();
+
+  if (!invoice) return { error: "Factura no encontrada" };
+  
+  // Check organization matches
+  if (invoice.organization_id !== orgId) {
+    return { error: "No tiene permiso para esta factura" };
+  }
+
+  if (amount <= 0) return { error: "El monto debe ser mayor a cero" };
+
+  // Get existing payments
+  const { data: existingPayments } = await supabase
+    .from("invoice_payments")
+    .select("amount")
+    .eq("invoice_id", invoiceId);
+
+  const totalPaid = (existingPayments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+  const remaining = Number(invoice.total) - totalPaid;
+
+  if (amount > remaining + 0.01) {
+    return { error: `El monto excede el saldo pendiente de Q${remaining.toFixed(2)}` };
+  }
+
+  // Insert payment
+  const { data: payment, error: paymentError } = await supabase
+    .from("invoice_payments")
+    .insert({
+      invoice_id: invoiceId,
+      organization_id: orgId,
+      amount,
+      payment_date: paymentDate || new Date().toISOString().split("T")[0],
+      payment_method: paymentMethod,
+      reference_number: referenceNumber || null,
+      bank_account_id: bankAccountId || null,
+      notes: notes || null,
+      created_by: user.id,
+    })
+    .select()
+    .single();
+
+  if (paymentError) return { error: paymentError.message };
+
+  // Update payment status on invoice (trigger should do this, but let's be safe)
+  const newTotalPaid = totalPaid + amount;
+  const newStatus = newTotalPaid >= Number(invoice.total) ? "PAID" 
+                  : newTotalPaid > 0 ? "PARTIAL" 
+                  : "UNPAID";
+
+  await supabase
+    .from("fel_invoices")
+    .update({ 
+      payment_status: newStatus,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", invoiceId);
+
+  // Log audit event
+  await logAuditEvent({
+    organization_id: orgId,
+    user_id: user.id,
+    action: "CREATE",
+    entity_type: "invoice_payments",
+    entity_id: payment.id,
+    description: `Pago registrado: Q${amount.toFixed(2)} a ${invoice.client_name} (${PAYMENT_METHOD_LABELS[paymentMethod as PaymentMethod] || paymentMethod})`,
+  });
+
+  revalidatePath("/dashboard/invoices");
+  revalidatePath(`/dashboard/invoices/${invoiceId}`);
+  return { success: true, payment };
+}
+
+export async function deletePayment(paymentId: string, orgId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Get payment info first
+  const { data: payment } = await supabase
+    .from("invoice_payments")
+    .select("*, invoice:fel_invoices(client_name, total)")
+    .eq("id", paymentId)
+    .single();
+
+  if (!payment) return { error: "Pago no encontrado" };
+  if (payment.organization_id !== orgId) {
+    return { error: "No tiene permiso para este pago" };
+  }
+
+  const invoiceId = payment.invoice_id;
+
+  // Delete payment
+  const { error } = await supabase
+    .from("invoice_payments")
+    .delete()
+    .eq("id", paymentId);
+
+  if (error) return { error: error.message };
+
+  // Recalculate payment status
+  const { data: remainingPayments } = await supabase
+    .from("invoice_payments")
+    .select("amount")
+    .eq("invoice_id", invoiceId);
+
+  const totalPaid = (remainingPayments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+  
+  // Get invoice total
+  const { data: invoice } = await supabase
+    .from("fel_invoices")
+    .select("total")
+    .eq("id", invoiceId)
+    .single();
+
+  const newStatus = totalPaid >= Number(invoice?.total || 0) ? "PAID" 
+                  : totalPaid > 0 ? "PARTIAL" 
+                  : "UNPAID";
+
+  await supabase
+    .from("fel_invoices")
+    .update({ 
+      payment_status: newStatus,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", invoiceId);
+
+  // Log audit
+  await logAuditEvent({
+    organization_id: orgId,
+    user_id: user.id,
+    action: "DELETE",
+    entity_type: "invoice_payments",
+    entity_id: paymentId,
+    description: `Pago eliminado: Q${payment.amount}`,
+  });
+
+  revalidatePath("/dashboard/invoices");
+  revalidatePath(`/dashboard/invoices/${invoiceId}`);
+  return { success: true };
+}
+
+export async function getInvoiceWithPayments(invoiceId: string) {
+  const supabase = await createClient();
+  
+  const { data: invoice, error: invoiceError } = await supabase
+    .from("fel_invoices")
+    .select(`*, contact:contacts(id, name, nit_number, email, phone, address), items:fel_invoice_items(*)`)
+    .eq("id", invoiceId)
+    .single();
+
+  if (invoiceError) throw invoiceError;
+
+  const { data: payments, error: paymentsError } = await supabase
+    .from("invoice_payments")
+    .select("*")
+    .eq("invoice_id", invoiceId)
+    .order("payment_date", { ascending: false });
+
+  if (paymentsError) throw paymentsError;
+
+  const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+
+  return {
+    ...invoice,
+    amount_paid: totalPaid,
+    payments: payments || [],
+  };
 }
