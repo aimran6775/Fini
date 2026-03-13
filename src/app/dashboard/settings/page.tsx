@@ -26,7 +26,7 @@ export default async function SettingsPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const org = membership.organizations as any;
   const isAdmin = membership.role === "ADMIN";
 

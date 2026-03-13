@@ -21,7 +21,7 @@ export default async function PayrollPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const orgId = membership.organization_id;
 
   const [{ data: employees }, { data: payrollRuns }] = await Promise.all([

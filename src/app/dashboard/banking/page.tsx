@@ -20,7 +20,7 @@ export default async function BankingPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const { data: accounts } = await supabase
     .from("bank_accounts")

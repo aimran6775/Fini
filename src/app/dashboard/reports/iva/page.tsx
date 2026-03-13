@@ -21,7 +21,7 @@ export default async function IvaReportPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const orgId = membership.organization_id;
   const org = membership.organizations as any;
   const now = new Date();

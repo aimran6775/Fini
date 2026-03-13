@@ -45,7 +45,7 @@ export default async function BankAccountPage({
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   let account;
   try {

@@ -30,7 +30,7 @@ export default async function BalanceComprobacionPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const org = membership.organizations as any;
   const today = new Date().toISOString().split("T")[0];
 

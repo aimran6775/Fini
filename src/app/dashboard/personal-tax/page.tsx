@@ -41,7 +41,7 @@ export default async function PersonalTaxPage({
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   
   const orgId = membership.organization_id;
   const currentYear = new Date().getFullYear();

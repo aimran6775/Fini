@@ -19,7 +19,7 @@ export default async function BudgetsPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const { data: budgets } = await supabase
     .from("budgets")

@@ -18,7 +18,7 @@ export default async function AccountsPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const { data: accounts } = await supabase
     .from("chart_of_accounts")

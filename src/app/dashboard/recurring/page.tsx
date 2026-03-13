@@ -35,7 +35,7 @@ export default async function RecurringPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const orgId = membership.organization_id;
 
   const [recurring, dueRecurring] = await Promise.all([

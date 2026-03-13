@@ -20,7 +20,7 @@ export default async function TaxPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const org = (membership as any).organization;
 
   const { data: filings } = await supabase

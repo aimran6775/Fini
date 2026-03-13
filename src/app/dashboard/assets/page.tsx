@@ -32,7 +32,7 @@ export default async function AssetsPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const { data: assets } = await supabase
     .from("fixed_assets")

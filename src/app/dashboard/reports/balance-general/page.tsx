@@ -21,7 +21,7 @@ export default async function BalanceGeneralPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const orgId = membership.organization_id;
   const org = membership.organizations as any;
   const today = new Date().toISOString().split("T")[0];

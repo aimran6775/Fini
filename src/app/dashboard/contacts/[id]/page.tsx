@@ -26,7 +26,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   // Get contact
   const { data: contact, error } = await supabase

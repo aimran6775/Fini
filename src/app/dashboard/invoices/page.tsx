@@ -34,7 +34,7 @@ export default async function InvoicesPage({
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   // Use the server action with filters
   const invoices = await getInvoices(membership.organization_id, {

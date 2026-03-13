@@ -26,7 +26,7 @@ export default async function ContactsPage({
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   // Build query with filters
   let query = supabase

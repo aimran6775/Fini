@@ -20,7 +20,7 @@ export default async function PlanillaReportPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const org = membership.organizations as any;
   const rows = await getPayrollReport(membership.organization_id);

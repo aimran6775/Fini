@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/utils";
 import {
   Receipt, Wallet, TrendingUp, TrendingDown, DollarSign,
   FileText, Users, Calculator, ArrowUpRight, ArrowDownRight,
-  CalendarClock, Plus, ChevronRight, Landmark, Boxes,
+  CalendarClock, Plus, ChevronRight, Landmark, Boxes, Settings,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -73,9 +73,35 @@ export default async function DashboardPage() {
 
   const greeting = getGreeting();
   const firstName = userProfile?.first_name || user.user_metadata?.full_name?.split(" ")[0] || "Usuario";
+  const needsSetup = org.nit_number === "CF";
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Setup Reminder Banner */}
+      {needsSetup && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                <Settings className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-medium text-amber-900">Completa tu información fiscal</p>
+                <p className="text-sm text-amber-700">
+                  Configura tu NIT y datos de empresa para poder emitir facturas FEL.
+                </p>
+              </div>
+            </div>
+            <Link 
+              href="/dashboard/settings" 
+              className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors whitespace-nowrap"
+            >
+              Configurar <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>

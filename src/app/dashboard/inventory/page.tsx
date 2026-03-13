@@ -20,7 +20,7 @@ export default async function InventoryPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const { data: items } = await supabase
     .from("inventory_items")

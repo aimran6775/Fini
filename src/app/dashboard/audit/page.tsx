@@ -17,7 +17,7 @@ export default async function AuditPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const { data: logs } = await supabase
     .from("audit_logs")

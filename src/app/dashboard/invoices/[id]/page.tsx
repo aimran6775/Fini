@@ -29,7 +29,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   // Get invoice with payments
   let invoice;

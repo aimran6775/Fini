@@ -24,7 +24,7 @@ export default async function LibroMayorPage({
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
 
   const params = await searchParams;
   const now = new Date();

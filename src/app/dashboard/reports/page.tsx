@@ -20,7 +20,7 @@ export default async function ReportsPage() {
     .limit(1)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/dashboard");
   const orgId = membership.organization_id;
 
   const financials = await getQuickFinancials(orgId);
