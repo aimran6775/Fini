@@ -37,7 +37,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
   const [dpi, setDpi] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [contribuyenteType, setContribuyenteType] = useState("PEQUEÑO");
+  const [contribuyenteType, setContribuyenteType] = useState("PEQUENO");
   const [isrRegime, setIsrRegime] = useState("SIMPLIFICADO");
   const [address, setAddress] = useState("");
   const [department, setDepartment] = useState("");
@@ -62,7 +62,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
       const formData = new FormData();
       formData.set("name", userName || "Mi Cuenta");
       formData.set("nit", "CF");
-      formData.set("contribuyente_type", "PEQUEÑO");
+      formData.set("contribuyente_type", "PEQUENO");
       formData.set("isr_regime", "SIMPLIFICADO");
 
       const result = await createOrganization(formData);
@@ -82,7 +82,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
       if (accountType === "personal") {
         formData.set("name", name);
         formData.set("nit", nit || "CF");
-        formData.set("contribuyente_type", "PEQUEÑO");
+        formData.set("contribuyente_type", "PEQUENO");
         formData.set("isr_regime", "SIMPLIFICADO");
       } else {
         formData.set("name", name);
@@ -369,7 +369,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Tipo de Contribuyente</Label>
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                  {[{ value: "GENERAL", label: "General", desc: "Obligado a IVA y FEL" }, { value: "PEQUEÑO", label: "Pequeño", desc: "Régimen simplificado" }].map((opt) => (
+                  {[{ value: "GENERAL", label: "General", desc: "Obligado a IVA y FEL" }, { value: "PEQUENO", label: "Pequeño", desc: "Régimen simplificado" }].map((opt) => (
                     <button key={opt.value} type="button" onClick={() => setContribuyenteType(opt.value)} className={`rounded-xl border p-4 text-left transition-all ${contribuyenteType === opt.value ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/30"}`}>
                       <p className="font-semibold text-sm">{opt.label}</p>
                       <p className="text-xs text-muted-foreground mt-1">{opt.desc}</p>
