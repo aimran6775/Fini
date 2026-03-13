@@ -19,21 +19,38 @@ export async function createOrganization(formData: FormData) {
   const phone = formData.get("phone") as string;
   const email = formData.get("email") as string;
 
-  // Use the RPC function that creates org + adds admin member atomically
-  const { data: orgId, error } = await supabase.rpc("create_organization_with_admin", {
-    p_name: name,
-    p_nit: nit.replace(/[-\s]/g, ""),
-    p_contribuyente_type: contribuyenteType,
-    p_isr_regime: isrRegime,
-    p_address: address || null,
-    p_municipality: municipality || null,
-    p_department: department || null,
-    p_phone: phone || null,
-    p_email: email || null,
-  });
+  // Create organization
+  const { data: newOrg, error: orgError } = await supabase
+    .from("organizations")
+    .insert({
+      name,
+      nit_number: nit.replace(/[-\s]/g, ""),
+      contribuyente_type: contribuyenteType,
+      isr_regime: isrRegime,
+      address: address || null,
+      municipality: municipality || null,
+      department: department || null,
+      phone: phone || null,
+      email: email || null,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    return { error: error.message };
+  if (orgError) {
+    return { error: orgError.message };
+  }
+
+  // Add user as admin member
+  const { error: memberError } = await supabase
+    .from("organization_members")
+    .insert({
+      organization_id: newOrg.id,
+      user_id: user.id,
+      role: "ADMIN",
+    });
+
+  if (memberError) {
+    return { error: memberError.message };
   }
 
   revalidatePath("/dashboard");
