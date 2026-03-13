@@ -26,7 +26,7 @@ export async function createAccount(formData: FormData) {
     account_code: formData.get("account_code") as string,
     account_name: formData.get("account_name") as string,
     account_type: formData.get("account_type") as string,
-    parent_account_id: parentAccountId || null,
+    parent_account_id: parentAccountId && parentAccountId !== "_none" ? parentAccountId : null,
     is_active: true,
   });
 

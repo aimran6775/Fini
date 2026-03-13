@@ -439,7 +439,7 @@ export async function recordPayment(formData: FormData) {
       payment_date: paymentDate || new Date().toISOString().split("T")[0],
       payment_method: paymentMethod,
       reference_number: referenceNumber || null,
-      bank_account_id: bankAccountId || null,
+      bank_account_id: bankAccountId && bankAccountId !== "_none" ? bankAccountId : null,
       notes: notes || null,
       created_by: user.id,
     })

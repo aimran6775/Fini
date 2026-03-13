@@ -73,8 +73,9 @@ export function ListFilters({
 
   // Handle filter change
   function handleFilterChange(key: string, value: string) {
-    setFilterValues(prev => ({ ...prev, [key]: value }));
-    updateParams({ [key]: value });
+    const actualValue = value === "_all" ? "" : value;
+    setFilterValues(prev => ({ ...prev, [key]: actualValue }));
+    updateParams({ [key]: actualValue });
   }
 
   // Handle date change
@@ -122,7 +123,7 @@ export function ListFilters({
             <SelectValue placeholder={filter.label} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="_all">Todos</SelectItem>
             {filter.options.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}

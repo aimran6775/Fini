@@ -153,7 +153,7 @@ export function PaymentRecorder({ invoiceId, organizationId, maxAmount, bankAcco
                     <SelectValue placeholder="Seleccionar cuenta (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin especificar</SelectItem>
+                    <SelectItem value="_none">Sin especificar</SelectItem>
                     {bankAccounts.map((acc) => (
                       <SelectItem key={acc.id} value={acc.id}>
                         {acc.bank_name} - {acc.account_name}

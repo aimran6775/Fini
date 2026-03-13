@@ -80,7 +80,7 @@ export function CreateAccountDialog({ orgId, accounts }: CreateAccountDialogProp
             <Select name="parent_account_id">
               <SelectTrigger><SelectValue placeholder="Ninguna (cuenta de nivel superior)" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Ninguna</SelectItem>
+                <SelectItem value="_none">Ninguna</SelectItem>
                 {accounts.map((acc) => (
                   <SelectItem key={acc.id} value={acc.id}>
                     {acc.account_code} — {acc.account_name}
