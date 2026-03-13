@@ -12,6 +12,7 @@ import { FEL_TYPE_LABELS, FEL_STATUS_LABELS } from "@/lib/tax-utils";
 import { InvoiceActions } from "@/components/dashboard/invoice-actions";
 import { PaymentRecorder } from "@/components/dashboard/payment-recorder";
 import { PaymentList } from "@/components/dashboard/payment-list";
+import { InvoicePrintButton } from "@/components/dashboard/invoice-print";
 import { getInvoiceWithPayments } from "@/app/actions/invoices";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +43,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   if (invoice.organization_id !== membership.organization_id) {
     notFound();
   }
+
+  // Get organization details for print
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("name, nit_number, address, phone, email, municipality, department")
+    .eq("id", membership.organization_id)
+    .single();
 
   // Get bank accounts for payment recording
   const { data: bankAccounts } = await supabase
@@ -76,6 +84,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {invoice.status === "AUTHORIZED" && organization && (
+            <InvoicePrintButton invoice={invoice} organization={organization} />
+          )}
           {invoice.status === "DRAFT" && (
             <Link href={`/dashboard/invoices/${id}/edit`}>
               <Button variant="outline">Editar</Button>

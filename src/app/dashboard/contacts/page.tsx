@@ -145,8 +145,12 @@ export default async function ContactsPage({
               </TableHeader>
               <TableBody>
                 {contacts.map((c: any) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      <Link href={`/dashboard/contacts/${c.id}`} className="text-primary hover:underline">
+                        {c.name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="font-mono">{c.nit || "CF"}</TableCell>
                     <TableCell>
                       <Badge variant={c.contact_type === "CLIENT" ? "default" : c.contact_type === "VENDOR" ? "secondary" : "outline"}>
