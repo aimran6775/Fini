@@ -172,10 +172,14 @@ export default function LandingPage() {
           HERO SECTION
           ═══════════════════════════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
-        {/* Background image from video first frame */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+        {/* Background video */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+          src="/videos/hero.mp4"
         />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/70 via-[#030712]/60 to-[#030712]" />
@@ -234,9 +238,9 @@ export default function LandingPage() {
           ═══════════════════════════════════════════════════════════ */}
       <section className="relative -mt-20 z-10 mx-auto max-w-6xl px-4 sm:px-6 pb-24">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl p-1.5 shadow-2xl">
-          <div className="rounded-xl bg-[#0c0c1a] p-4 sm:p-6">
-            {/* Header bar */}
-            <div className="flex items-center gap-2 mb-6">
+          <div className="rounded-xl bg-[#0c0c1a] overflow-hidden">
+            {/* Browser chrome header */}
+            <div className="flex items-center gap-2 p-4 pb-0 sm:p-6 sm:pb-0">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
@@ -247,39 +251,16 @@ export default function LandingPage() {
               </div>
             </div>
             
-            {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
-              {[
-                { label: t.dashboard.income, value: "Q 847,320", change: "+12.5%", up: true },
-                { label: t.dashboard.expenses, value: "Q 234,150", change: "-3.2%", up: true },
-                { label: t.dashboard.profit, value: "Q 613,170", change: "+18.7%", up: true },
-              ].map((kpi, i) => (
-                <div key={i} className="rounded-xl bg-white/[0.04] border border-white/5 p-4 hover:border-white/10 transition-colors">
-                  <p className="text-xs text-white/40 mb-1">{kpi.label}</p>
-                  <p className="text-xl font-bold text-white">{kpi.value}</p>
-                  <span className={`text-xs font-medium ${kpi.up ? "text-emerald-400" : "text-red-400"}`}>
-                    {kpi.change}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Chart placeholder */}
-            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4">
-              <p className="text-xs text-white/40 mb-4">{t.dashboard.monthlyIncome}</p>
-              <div className="flex items-end gap-1.5 h-20 sm:h-28">
-                {[35, 45, 40, 55, 50, 65, 60, 75, 70, 85, 80, 95].map((h, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className="w-full rounded-sm bg-gradient-to-t from-indigo-600 to-purple-500 opacity-80 hover:opacity-100 transition-all hover:scale-105"
-                      style={{ height: `${h}%` }}
-                    />
-                    <span className="text-[8px] sm:text-[9px] text-white/30 hidden sm:block">
-                      {["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"][i]}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            {/* Product demo video */}
+            <div className="p-3 sm:p-4">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full rounded-lg"
+                src="/videos/hero.mp4"
+              />
             </div>
           </div>
         </div>
