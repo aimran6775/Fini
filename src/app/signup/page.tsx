@@ -79,6 +79,7 @@ export default function SignupPage() {
         <div className="absolute top-4 right-4 z-20">
           <button
             onClick={() => setLang(lang === "es" ? "en" : "es")}
+            aria-label="Cambiar idioma"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
           >
             <Languages className="h-4 w-4" />
@@ -114,6 +115,7 @@ export default function SignupPage() {
       <div className="absolute top-4 right-4 z-20">
         <button
           onClick={() => setLang(lang === "es" ? "en" : "es")}
+          aria-label="Cambiar idioma"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
         >
           <Languages className="h-4 w-4" />
@@ -144,12 +146,13 @@ export default function SignupPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
+              <label htmlFor="signup-name" className="text-xs font-medium text-white/50 uppercase tracking-wider">
                 {t.auth.fullName}
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
                 <input
+                  id="signup-name"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -161,12 +164,13 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
+              <label htmlFor="signup-email" className="text-xs font-medium text-white/50 uppercase tracking-wider">
                 {t.auth.email}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
                 <input
+                  id="signup-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -178,12 +182,13 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-white/50 uppercase tracking-wider">
+              <label htmlFor="signup-password" className="text-xs font-medium text-white/50 uppercase tracking-wider">
                 {t.auth.password}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/25" />
                 <input
+                  id="signup-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -195,6 +200,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

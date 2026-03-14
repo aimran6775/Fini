@@ -23,13 +23,16 @@ export async function createExpense(formData: FormData) {
   if (!user) redirect("/login");
 
   const orgId = formData.get("organization_id") as string;
+  const amount = parseFloat(formData.get("amount") as string);
+  if (isNaN(amount) || amount <= 0) return { error: "El monto debe ser mayor a cero" };
 
   const { error } = await supabase.from("expenses").insert({
     organization_id: orgId,
     expense_date: formData.get("expense_date") as string,
     description: formData.get("description") as string,
-    amount: parseFloat(formData.get("amount") as string),
+    amount,
     iva_amount: parseFloat(formData.get("iva_amount") as string || "0"),
+
     currency: (formData.get("currency") as string) || "GTQ",
     exchange_rate: 1.0,
     category: (formData.get("category") as string) || null,
@@ -85,6 +88,9 @@ export async function approveExpense(id: string) {
 
 export async function deleteExpense(id: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase.from("expenses").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/dashboard/expenses");

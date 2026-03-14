@@ -74,7 +74,8 @@ export async function createBankTransaction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const amount = parseFloat(formData.get("amount") as string) || 0;
+  const amount = parseFloat(formData.get("amount") as string);
+  if (isNaN(amount) || amount <= 0) return { error: "El monto debe ser mayor a cero" };
   const category = formData.get("category") as string;
   
   // Withdrawals and fees are negative, deposits are positive
@@ -95,20 +96,12 @@ export async function createBankTransaction(formData: FormData) {
 
   if (txnError) return { error: txnError.message };
 
-  // Update account balance
+  // Update account balance atomically via RPC
   const accountId = formData.get("bank_account_id") as string;
-  const { data: account } = await supabase
-    .from("bank_accounts")
-    .select("current_balance")
-    .eq("id", accountId)
-    .single();
-  
-  if (account) {
-    await supabase
-      .from("bank_accounts")
-      .update({ current_balance: Number(account.current_balance) + signedAmount })
-      .eq("id", accountId);
-  }
+  await supabase.rpc("adjust_bank_balance", {
+    p_account_id: accountId,
+    p_amount: signedAmount,
+  });
 
   revalidatePath("/dashboard/banking");
   return { success: true };
@@ -128,19 +121,11 @@ export async function deleteBankTransaction(txnId: string, orgId: string) {
     .single();
   
   if (txn) {
-    // Reverse the balance
-    const { data: account } = await supabase
-      .from("bank_accounts")
-      .select("current_balance")
-      .eq("id", txn.bank_account_id)
-      .single();
-    
-    if (account) {
-      await supabase
-        .from("bank_accounts")
-        .update({ current_balance: Number(account.current_balance) - Number(txn.amount) })
-        .eq("id", txn.bank_account_id);
-    }
+    // Reverse the balance atomically
+    await supabase.rpc("adjust_bank_balance", {
+      p_account_id: txn.bank_account_id,
+      p_amount: -Number(txn.amount),
+    });
   }
 
   const { error } = await supabase

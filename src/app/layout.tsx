@@ -16,6 +16,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://fini-tax-production.up.railway.app"),
   title: {
     default: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
     template: "%s | Fini Tax GT",
@@ -39,6 +40,21 @@ export const metadata: Metadata = {
     description: "QuickBooks + TurboTax para Guatemala. Impuestos personales, facturación FEL, contabilidad, planilla y más.",
     type: "website",
     locale: "es_GT",
+    siteName: "Fini Tax GT",
+    images: [
+      {
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
+    description: "QuickBooks + TurboTax para Guatemala. Facturación FEL, ISR, IVA, ISO, planilla y más.",
+    images: ["/images/og-image.png"],
   },
 };
 

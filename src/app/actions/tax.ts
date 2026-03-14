@@ -8,6 +8,8 @@ import type { TaxCalculation } from "@/lib/tax-utils";
 
 export async function calculateIVA(orgId: string, month: number, year: number): Promise<TaxCalculation> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
   const endDate = new Date(year, month, 0).toISOString().split("T")[0];
@@ -53,6 +55,8 @@ export async function calculateISR(
   regime: "UTILIDADES" | "SIMPLIFICADO"
 ): Promise<TaxCalculation> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const startMonth = (quarter - 1) * 3 + 1;
   const endMonth = quarter * 3;
@@ -124,6 +128,8 @@ export async function calculateISR(
 
 export async function calculateISO(orgId: string, quarter: number, year: number): Promise<TaxCalculation> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   // ISO = 1% of the greater of: total net assets OR gross quarterly income / 4
   const startMonth = (quarter - 1) * 3 + 1;

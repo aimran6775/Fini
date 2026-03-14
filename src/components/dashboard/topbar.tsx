@@ -69,7 +69,7 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
   return (
     <header className="flex items-center gap-3 border-b bg-white/80 backdrop-blur-sm px-4 sm:px-6 h-14 flex-shrink-0">
       {/* Mobile menu */}
-      <button onClick={onMenuToggle} className="lg:hidden -ml-1 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+      <button onClick={onMenuToggle} aria-label="Abrir menú" className="lg:hidden -ml-1 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
         <Menu className="h-5 w-5" />
       </button>
 

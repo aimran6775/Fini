@@ -23,7 +23,10 @@ export async function getInvoices(orgId: string, filters?: {
 
   if (filters?.status) query = query.eq("status", filters.status);
   if (filters?.type) query = query.eq("fel_type", filters.type);
-  if (filters?.search) query = query.or(`client_name.ilike.%${filters.search}%,client_nit.ilike.%${filters.search}%,fel_serie.ilike.%${filters.search}%`);
+  if (filters?.search) {
+    const s = filters.search.replace(/[%_(),.'"\\]/g, "");
+    if (s) query = query.or(`client_name.ilike.%${s}%,client_nit.ilike.%${s}%,fel_serie.ilike.%${s}%`);
+  }
   if (filters?.dateFrom) query = query.gte("invoice_date", filters.dateFrom);
   if (filters?.dateTo) query = query.lte("invoice_date", filters.dateTo);
 
@@ -167,6 +170,8 @@ export async function createInvoice(formData: FormData) {
 
 export async function certifyInvoice(invoiceId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   // In production, this would call the FEL certificador API (INFILE, DIGIFACT, etc.)
   // For now, we simulate certification
@@ -186,20 +191,17 @@ export async function certifyInvoice(invoiceId: string) {
 
   if (error) return { error: error.message };
 
-  // Get user for audit
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const { data: inv } = await supabase.from("fel_invoices").select("organization_id, client_name, total").eq("id", invoiceId).single();
-    if (inv) {
-      await logAuditEvent({
-        organization_id: inv.organization_id,
-        user_id: user.id,
-        action: "CERTIFY",
-        entity_type: "fel_invoices",
-        entity_id: invoiceId,
-        description: `Factura certificada: ${inv.client_name} — Q${inv.total}`,
-      });
-    }
+  // Audit log
+  const { data: inv } = await supabase.from("fel_invoices").select("organization_id, client_name, total").eq("id", invoiceId).single();
+  if (inv) {
+    await logAuditEvent({
+      organization_id: inv.organization_id,
+      user_id: user.id,
+      action: "CERTIFY",
+      entity_type: "fel_invoices",
+      entity_id: invoiceId,
+      description: `Factura certificada: ${inv.client_name} — Q${inv.total}`,
+    });
   }
 
   revalidatePath("/dashboard/invoices");
@@ -208,6 +210,8 @@ export async function certifyInvoice(invoiceId: string) {
 
 export async function voidInvoice(invoiceId: string, reason: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   // In production, this would call the FEL anulación API
   const { error } = await supabase
@@ -219,6 +223,19 @@ export async function voidInvoice(invoiceId: string, reason: string) {
     .eq("id", invoiceId);
 
   if (error) return { error: error.message };
+
+  // Audit log
+  const { data: inv } = await supabase.from("fel_invoices").select("organization_id, client_name, total").eq("id", invoiceId).single();
+  if (inv) {
+    await logAuditEvent({
+      organization_id: inv.organization_id,
+      user_id: user.id,
+      action: "VOID",
+      entity_type: "fel_invoices",
+      entity_id: invoiceId,
+      description: `Factura anulada: ${inv.client_name} — Q${inv.total}`,
+    });
+  }
 
   revalidatePath("/dashboard/invoices");
   return { success: true };
@@ -351,6 +368,8 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 
 export async function deleteInvoice(invoiceId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   // Can only delete drafts
   const { data: invoice } = await supabase
@@ -414,7 +433,7 @@ export async function recordPayment(formData: FormData) {
     return { error: "No tiene permiso para esta factura" };
   }
 
-  if (amount <= 0) return { error: "El monto debe ser mayor a cero" };
+  if (isNaN(amount) || amount <= 0) return { error: "El monto debe ser mayor a cero" };
 
   // Get existing payments
   const { data: existingPayments } = await supabase
