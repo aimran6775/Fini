@@ -192,7 +192,7 @@ export default async function EstadoResultadosPage() {
 
           {!hasJournalData && (
             <p className="mt-4 text-sm text-muted-foreground bg-yellow-50 p-3 rounded-lg">
-              ⚠️ Este reporte se generó con datos de facturas y gastos. Para mayor precisión,
+              Este reporte se generó con datos de facturas y gastos. Para mayor precisión,
               registre partidas contables en el Libro Diario.
             </p>
           )}

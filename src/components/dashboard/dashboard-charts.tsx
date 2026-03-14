@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -13,6 +14,19 @@ import {
   Cell,
   Legend,
 } from "recharts";
+
+/* ── Detect dark mode via class on <html> ── */
+function useIsDark() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const root = document.documentElement;
+    setDark(root.classList.contains("dark"));
+    const obs = new MutationObserver(() => setDark(root.classList.contains("dark")));
+    obs.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 
 /* ────── Revenue vs Expenses Area Chart ────── */
 
@@ -62,6 +76,10 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
+  const isDark = useIsDark();
+  const gridColor = isDark ? "#27272a" : "#f3f4f6";
+  const tickColor = isDark ? "#71717a" : "#9ca3af";
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">
@@ -83,17 +101,17 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
             <stop offset="95%" stopColor={CHART_COLORS.expenses} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
         <XAxis
           dataKey="month"
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 12, fill: "#9ca3af" }}
+          tick={{ fontSize: 12, fill: tickColor }}
         />
         <YAxis
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 11, fill: "#9ca3af" }}
+          tick={{ fontSize: 11, fill: tickColor }}
           tickFormatter={formatCompact}
         />
         <Tooltip content={<CustomTooltip />} />

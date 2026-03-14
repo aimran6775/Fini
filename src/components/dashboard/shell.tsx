@@ -41,7 +41,7 @@ export function DashboardShell({ user, profile, organizations, children }: Dashb
         userRole: currentOrg?.role ?? "EMPLOYEE",
       }}
     >
-      <div className="flex h-screen overflow-hidden bg-white">
+      <div className="flex h-screen overflow-hidden bg-background">
         {/* Mobile overlay */}
         {mobileSidebarOpen && (
           <div

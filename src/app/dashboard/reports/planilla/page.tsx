@@ -206,7 +206,7 @@ export default async function PlanillaReportPage() {
           <Card>
             <CardContent className="py-4">
               <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                <p className="font-medium">📋 Nota sobre la Planilla</p>
+                <p className="font-medium">Nota sobre la Planilla</p>
                 <ul className="mt-2 list-disc pl-4 space-y-1">
                   <li>La bonificación incentivo (Q250) no es base para IGSS, ISR ni prestaciones según Decreto 78-89.</li>
                   <li>Las cuotas de IGSS, IRTRA e INTECAP se calculan sobre el sueldo ordinario.</li>

@@ -5,7 +5,7 @@ import {
   Receipt, TrendingUp, TrendingDown, DollarSign,
   FileText, Users, Calculator, ArrowUpRight, ArrowDownRight,
   CalendarClock, Plus, ChevronRight, Landmark, Settings,
-  BarChart3,
+  BarChart3, AlertCircle, Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -103,20 +103,33 @@ export default async function DashboardPage({
   const greeting = getGreeting();
   const firstName = userProfile?.first_name || user.user_metadata?.full_name?.split(" ")[0] || "Usuario";
   const needsSetup = org.nit_number === "CF";
+  const userRole = (membership as any).role;
+
+  // ── Personalization data ──
+  const draftCount = invoicesRes.data?.filter((i: any) => i.status === "DRAFT").length ?? 0;
+  const obligations = getUpcomingObligations();
+  const profitMargin = totalInvoiced > 0 ? Math.round((netIncome / totalInvoiced) * 100) : null;
+  const subtitle = getPersonalizedSubtitle({
+    totalInvoiced,
+    totalExpenses,
+    netIncome,
+    draftCount,
+    revenueTrend,
+  });
 
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Setup Reminder Banner */}
       {needsSetup && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-                <Settings className="h-5 w-5 text-amber-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900">
+                <Settings className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="font-medium text-amber-900">Completa tu información fiscal</p>
-                <p className="text-sm text-amber-700">
+                <p className="font-medium text-amber-900 dark:text-amber-200">Completa tu información fiscal</p>
+                <p className="text-sm text-amber-700 dark:text-amber-400">
                   Configura tu NIT y datos de empresa para poder emitir facturas FEL.
                 </p>
               </div>
@@ -135,10 +148,44 @@ export default async function DashboardPage({
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">{greeting}</p>
-          <h1 className="text-2xl font-bold tracking-tight mt-0.5">{firstName} 👋</h1>
+          <div className="flex items-center gap-2 mt-0.5">
+            <h1 className="text-2xl font-bold tracking-tight">{firstName}</h1>
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary">
+              {userRole === "ADMIN" ? "Admin" : userRole === "ACCOUNTANT" ? "Contador" : "Empleado"}
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">
             {org.name} · NIT {org.nit_number}
           </p>
+          <p className="text-sm text-muted-foreground/80 mt-1.5">{subtitle}</p>
+
+          {/* Insight chips */}
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {draftCount > 0 && (
+              <Link
+                href="/dashboard/invoices"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400 hover:opacity-80 transition-opacity"
+              >
+                <AlertCircle className="h-3 w-3" />
+                {draftCount} borrador{draftCount > 1 ? "es" : ""} por certificar
+              </Link>
+            )}
+            {obligations[0]?.daysLeft <= 7 && (
+              <Link
+                href="/dashboard/tax"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400 hover:opacity-80 transition-opacity"
+              >
+                <CalendarClock className="h-3 w-3" />
+                IVA vence en {obligations[0].daysLeft} días
+              </Link>
+            )}
+            {profitMargin !== null && profitMargin > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                <Sparkles className="h-3 w-3" />
+                Margen: {profitMargin}%
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Suspense fallback={null}>
@@ -161,7 +208,7 @@ export default async function DashboardPage({
           label="Ingresos"
           value={formatCurrency(totalInvoiced)}
           icon={<TrendingUp className="h-4 w-4" />}
-          iconBg="bg-emerald-50 text-emerald-600"
+          iconBg="bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
           trend={revenueTrend}
           trendUp={revenueTrend ? !revenueTrend.startsWith("-") : undefined}
         />
@@ -169,7 +216,7 @@ export default async function DashboardPage({
           label="Gastos"
           value={formatCurrency(totalExpenses)}
           icon={<TrendingDown className="h-4 w-4" />}
-          iconBg="bg-rose-50 text-rose-600"
+          iconBg="bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
           trend={expenseTrend}
           trendUp={expenseTrend ? expenseTrend.startsWith("-") : undefined}
         />
@@ -177,13 +224,13 @@ export default async function DashboardPage({
           label="Utilidad Neta"
           value={formatCurrency(netIncome)}
           icon={<DollarSign className="h-4 w-4" />}
-          iconBg="bg-violet-50 text-violet-600"
+          iconBg="bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400"
         />
         <KpiCard
           label="Saldo Bancario"
           value={formatCurrency(bankBalance)}
           icon={<Landmark className="h-4 w-4" />}
-          iconBg="bg-blue-50 text-blue-600"
+          iconBg="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
         />
       </div>
 
@@ -220,12 +267,12 @@ export default async function DashboardPage({
           <h2 className="text-sm font-semibold text-foreground">Acciones Rápidas</h2>
           <div className="space-y-1.5">
             {[
-              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "text-indigo-600 bg-indigo-50" },
-              { label: "Registrar Gasto", href: "/dashboard/expenses/new", icon: Receipt, color: "text-amber-600 bg-amber-50" },
-              { label: "Partida de Diario", href: "/dashboard/journal/new", icon: FileText, color: "text-emerald-600 bg-emerald-50" },
-              { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, color: "text-cyan-600 bg-cyan-50" },
-              { label: "Calcular Impuesto", href: "/dashboard/tax", icon: Calculator, color: "text-rose-600 bg-rose-50" },
-              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "text-purple-600 bg-purple-50" },
+              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-950" },
+              { label: "Registrar Gasto", href: "/dashboard/expenses/new", icon: Receipt, color: "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950" },
+              { label: "Partida de Diario", href: "/dashboard/journal/new", icon: FileText, color: "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950" },
+              { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, color: "text-cyan-600 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-950" },
+              { label: "Calcular Impuesto", href: "/dashboard/tax", icon: Calculator, color: "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950" },
+              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-950" },
             ].map((action) => (
               <Link
                 key={action.href}
@@ -283,9 +330,9 @@ export default async function DashboardPage({
                       <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(inv.total)}</td>
                       <td className="px-4 py-3 text-right">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                          inv.status === "CERTIFIED" ? "bg-emerald-50 text-emerald-700" :
-                          inv.status === "VOIDED" ? "bg-red-50 text-red-700" :
-                          "bg-neutral-100 text-neutral-600"
+                          inv.status === "CERTIFIED" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400" :
+                          inv.status === "VOIDED" ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400" :
+                          "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
                         }`}>
                           {inv.status === "CERTIFIED" ? "Certificada" : inv.status === "VOIDED" ? "Anulada" : "Borrador"}
                         </span>
@@ -336,7 +383,7 @@ export default async function DashboardPage({
             <CalendarClock className="h-4 w-4 text-muted-foreground" /> Próximas Obligaciones
           </h2>
           <div className="rounded-lg border divide-y">
-            {getUpcomingObligations().map((ob) => (
+            {obligations.map((ob) => (
               <div key={ob.tax} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-sm font-medium">{ob.tax}</p>
@@ -407,6 +454,29 @@ function getGreeting() {
   if (h < 12) return "Buenos días,";
   if (h < 18) return "Buenas tardes,";
   return "Buenas noches,";
+}
+
+/** Personalized subtitle based on the user's data */
+function getPersonalizedSubtitle(data: {
+  totalInvoiced: number;
+  totalExpenses: number;
+  netIncome: number;
+  draftCount: number;
+  revenueTrend: string | null;
+}): string {
+  if (data.totalInvoiced === 0 && data.totalExpenses === 0) {
+    return "Comienza registrando tus primeras facturas y gastos.";
+  }
+  if (data.revenueTrend && !data.revenueTrend.startsWith("-") && data.revenueTrend !== "+0%") {
+    return "Tus ingresos van en aumento. Buen trabajo.";
+  }
+  if (data.netIncome < 0) {
+    return "Tus gastos superan tus ingresos este período. Revisa tu presupuesto.";
+  }
+  if (data.draftCount > 0) {
+    return `Tienes ${data.draftCount} factura${data.draftCount > 1 ? "s" : ""} en borrador pendiente${data.draftCount > 1 ? "s" : ""}.`;
+  }
+  return "Aquí tienes un resumen de tu actividad financiera.";
 }
 
 /** Compute month-over-month % change. Returns null when no data */

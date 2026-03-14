@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, CheckCheck, Trash2, ExternalLink, Filter } from "lucide-react";
+import {
+  Bell, CheckCheck, Trash2, ExternalLink, Filter, Calendar,
+  FileText, Receipt, Users, Settings, AlertTriangle, Info,
+} from "lucide-react";
 import { markAsRead, markAllAsRead, deleteNotification } from "@/app/actions/notifications";
 
 interface Notification {
@@ -19,15 +22,27 @@ interface Notification {
   created_at: string;
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  tax_deadline: "🗓️", TAX_DEADLINE: "🗓️",
-  invoice: "🧾", INVOICE: "🧾", INVOICE_AUTHORIZED: "🧾", INVOICE_VOIDED: "🧾",
-  expense: "💰", EXPENSE: "💰", EXPENSE_APPROVED: "💰",
-  payroll: "👥", PAYROLL: "👥", PAYROLL_PROCESSED: "👥",
-  system: "⚙️", SYSTEM: "⚙️",
-  warning: "⚠️", WARNING: "⚠️",
-  info: "ℹ️", INFO: "ℹ️",
-};
+function TypeIcon({ type, size = "md" }: { type: string; size?: "sm" | "md" }) {
+  const cls = size === "sm" ? "h-4 w-4" : "h-5 w-5";
+  switch (type) {
+    case "tax_deadline": case "TAX_DEADLINE":
+      return <Calendar className={`${cls} text-amber-500`} />;
+    case "invoice": case "INVOICE": case "INVOICE_AUTHORIZED": case "INVOICE_VOIDED":
+      return <FileText className={`${cls} text-indigo-500`} />;
+    case "expense": case "EXPENSE": case "EXPENSE_APPROVED":
+      return <Receipt className={`${cls} text-emerald-500`} />;
+    case "payroll": case "PAYROLL": case "PAYROLL_PROCESSED":
+      return <Users className={`${cls} text-cyan-500`} />;
+    case "system": case "SYSTEM":
+      return <Settings className={`${cls} text-gray-500`} />;
+    case "warning": case "WARNING":
+      return <AlertTriangle className={`${cls} text-amber-500`} />;
+    case "info": case "INFO":
+      return <Info className={`${cls} text-blue-500`} />;
+    default:
+      return <Bell className={`${cls} text-gray-400`} />;
+  }
+}
 
 const TYPE_LABELS: Record<string, string> = {
   tax_deadline: "Vencimiento fiscal", TAX_DEADLINE: "Vencimiento fiscal",
@@ -113,8 +128,8 @@ export function NotificationsClient({ notifications: initialNotifications }: { n
             >
               <CardContent className="flex items-start gap-4 py-4">
                 {/* Icon */}
-                <div className="mt-0.5 text-xl shrink-0">
-                  {TYPE_ICONS[n.type] || "📌"}
+                <div className="mt-0.5 shrink-0">
+                  <TypeIcon type={n.type} />
                 </div>
 
                 {/* Content */}

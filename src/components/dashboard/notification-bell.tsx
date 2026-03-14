@@ -8,7 +8,10 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, CheckCheck, ExternalLink } from "lucide-react";
+import {
+  Bell, CheckCheck, ExternalLink, Calendar, FileText, Receipt,
+  Users, Settings, AlertTriangle, Info,
+} from "lucide-react";
 import { getNotifications, markAsRead, markAllAsRead } from "@/app/actions/notifications";
 
 interface Notification {
@@ -21,15 +24,27 @@ interface Notification {
   created_at: string;
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  tax_deadline: "🗓️", TAX_DEADLINE: "🗓️",
-  invoice: "🧾", INVOICE: "🧾", INVOICE_AUTHORIZED: "🧾", INVOICE_VOIDED: "🧾",
-  expense: "💰", EXPENSE: "💰", EXPENSE_APPROVED: "💰",
-  payroll: "👥", PAYROLL: "👥", PAYROLL_PROCESSED: "👥",
-  system: "⚙️", SYSTEM: "⚙️",
-  warning: "⚠️", WARNING: "⚠️",
-  info: "ℹ️", INFO: "ℹ️",
-};
+function TypeIcon({ type }: { type: string }) {
+  const cls = "h-4 w-4";
+  switch (type) {
+    case "tax_deadline": case "TAX_DEADLINE":
+      return <Calendar className={`${cls} text-amber-500`} />;
+    case "invoice": case "INVOICE": case "INVOICE_AUTHORIZED": case "INVOICE_VOIDED":
+      return <FileText className={`${cls} text-indigo-500`} />;
+    case "expense": case "EXPENSE": case "EXPENSE_APPROVED":
+      return <Receipt className={`${cls} text-emerald-500`} />;
+    case "payroll": case "PAYROLL": case "PAYROLL_PROCESSED":
+      return <Users className={`${cls} text-cyan-500`} />;
+    case "system": case "SYSTEM":
+      return <Settings className={`${cls} text-gray-500`} />;
+    case "warning": case "WARNING":
+      return <AlertTriangle className={`${cls} text-amber-500`} />;
+    case "info": case "INFO":
+      return <Info className={`${cls} text-blue-500`} />;
+    default:
+      return <Bell className={`${cls} text-gray-400`} />;
+  }
+}
 
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -119,7 +134,7 @@ export function NotificationBell() {
               >
                 <div className="flex w-full items-start justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm">{TYPE_ICONS[n.type] || "📌"}</span>
+                    <TypeIcon type={n.type} />
                     <span className={`text-sm ${!n.is_read ? "font-semibold" : ""}`}>{n.title}</span>
                   </div>
                   <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo(n.created_at)}</span>

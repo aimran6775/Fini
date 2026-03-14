@@ -5,6 +5,7 @@ import { type User } from "@supabase/supabase-js";
 import { cn, getInitials } from "@/lib/utils";
 import { signOut } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
+import { ThemeToggle } from "@/components/theme-provider";
 import { usePathname } from "next/navigation";
 import {
   Menu, Search, Settings, LogOut, User as UserIcon, ChevronRight,
@@ -67,7 +68,7 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
   }, []);
 
   return (
-    <header className="flex items-center gap-3 border-b bg-white/80 backdrop-blur-sm px-4 sm:px-6 h-14 flex-shrink-0">
+    <header className="flex items-center gap-3 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 h-14 flex-shrink-0">
       {/* Mobile menu */}
       <button onClick={onMenuToggle} aria-label="Abrir menú" className="lg:hidden -ml-1 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
         <Menu className="h-5 w-5" />
@@ -94,6 +95,7 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
 
       {/* Right */}
       <div className="flex items-center gap-1.5">
+        <ThemeToggle />
         <NotificationBell />
 
         {/* User */}
@@ -109,7 +111,7 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
           </button>
 
           {userMenuOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-52 rounded-lg border bg-white shadow-lg shadow-black/5 z-50 overflow-hidden animate-scale-in origin-top-right">
+            <div className="absolute right-0 top-full mt-1.5 w-52 rounded-lg border bg-popover shadow-lg shadow-black/5 z-50 overflow-hidden animate-scale-in origin-top-right">
               <div className="px-3 py-2.5 border-b">
                 <p className="text-sm font-medium">{displayName}</p>
                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>

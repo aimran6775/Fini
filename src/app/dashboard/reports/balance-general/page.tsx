@@ -178,8 +178,8 @@ export default async function BalanceGeneralPage() {
           </div>
           <p className="text-center mt-3 text-sm text-muted-foreground">
             {ecuacionContable === pasivoMasPatrimonio
-              ? "✅ La ecuación contable cuadra correctamente"
-              : `⚠️ Diferencia de ${formatCurrency(Math.abs(ecuacionContable - pasivoMasPatrimonio))}`}
+              ? "La ecuación contable cuadra correctamente"
+              : `Diferencia de ${formatCurrency(Math.abs(ecuacionContable - pasivoMasPatrimonio))}`}
           </p>
         </CardContent>
       </Card>

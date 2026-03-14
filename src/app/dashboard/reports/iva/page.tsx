@@ -151,7 +151,7 @@ export default async function IvaReportPage() {
 
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="p-4 text-sm text-blue-800">
-          <p className="font-semibold">📋 Declaración SAT-2237</p>
+          <p className="font-semibold">Declaración SAT-2237</p>
           <p className="mt-1">
             El IVA se declara mensualmente ante la SAT usando el formulario SAT-2237.
             El plazo es hasta el último día hábil del mes siguiente.

@@ -109,8 +109,8 @@ export default async function BalanceComprobacionPage() {
         <Card className={Math.abs(totalDebit - totalCredit) < 0.01 ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
           <CardContent className="p-4 text-center text-sm">
             {Math.abs(totalDebit - totalCredit) < 0.01
-              ? "✅ El balance cuadra — Suma de Débitos = Suma de Créditos"
-              : `⚠️ Diferencia: ${formatCurrency(Math.abs(totalDebit - totalCredit))}`}
+              ? "El balance cuadra — Suma de Débitos = Suma de Créditos"
+              : `Diferencia: ${formatCurrency(Math.abs(totalDebit - totalCredit))}`}
           </CardContent>
         </Card>
       )}
