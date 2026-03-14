@@ -20,23 +20,23 @@ interface Notification {
 }
 
 const TYPE_ICONS: Record<string, string> = {
-  tax_deadline: "🗓️",
-  invoice: "🧾",
-  expense: "💰",
-  payroll: "👥",
-  system: "⚙️",
-  warning: "⚠️",
-  info: "ℹ️",
+  tax_deadline: "🗓️", TAX_DEADLINE: "🗓️",
+  invoice: "🧾", INVOICE: "🧾", INVOICE_AUTHORIZED: "🧾", INVOICE_VOIDED: "🧾",
+  expense: "💰", EXPENSE: "💰", EXPENSE_APPROVED: "💰",
+  payroll: "👥", PAYROLL: "👥", PAYROLL_PROCESSED: "👥",
+  system: "⚙️", SYSTEM: "⚙️",
+  warning: "⚠️", WARNING: "⚠️",
+  info: "ℹ️", INFO: "ℹ️",
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  tax_deadline: "Vencimiento fiscal",
-  invoice: "Factura",
-  expense: "Gasto",
-  payroll: "Planilla",
-  system: "Sistema",
-  warning: "Alerta",
-  info: "Información",
+  tax_deadline: "Vencimiento fiscal", TAX_DEADLINE: "Vencimiento fiscal",
+  invoice: "Factura", INVOICE: "Factura", INVOICE_AUTHORIZED: "Factura Autorizada", INVOICE_VOIDED: "Factura Anulada",
+  expense: "Gasto", EXPENSE: "Gasto", EXPENSE_APPROVED: "Gasto Aprobado",
+  payroll: "Planilla", PAYROLL: "Planilla", PAYROLL_PROCESSED: "Planilla Procesada",
+  system: "Sistema", SYSTEM: "Sistema",
+  warning: "Alerta", WARNING: "Alerta",
+  info: "Información", INFO: "Información",
 };
 
 export function NotificationsClient({ notifications: initialNotifications }: { notifications: Notification[] }) {

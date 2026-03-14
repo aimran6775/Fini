@@ -62,7 +62,7 @@ export default function NewBankAccountPage() {
                   <SelectContent>
                     <SelectItem value="CHECKING">Monetaria</SelectItem>
                     <SelectItem value="SAVINGS">Ahorro</SelectItem>
-                    <SelectItem value="CREDIT">Crédito</SelectItem>
+                    <SelectItem value="CREDIT_CARD">Tarjeta de Crédito</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

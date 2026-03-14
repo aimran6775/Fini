@@ -22,13 +22,13 @@ interface Notification {
 }
 
 const TYPE_ICONS: Record<string, string> = {
-  tax_deadline: "🗓️",
-  invoice: "🧾",
-  expense: "💰",
-  payroll: "👥",
-  system: "⚙️",
-  warning: "⚠️",
-  info: "ℹ️",
+  tax_deadline: "🗓️", TAX_DEADLINE: "🗓️",
+  invoice: "🧾", INVOICE: "🧾", INVOICE_AUTHORIZED: "🧾", INVOICE_VOIDED: "🧾",
+  expense: "💰", EXPENSE: "💰", EXPENSE_APPROVED: "💰",
+  payroll: "👥", PAYROLL: "👥", PAYROLL_PROCESSED: "👥",
+  system: "⚙️", SYSTEM: "⚙️",
+  warning: "⚠️", WARNING: "⚠️",
+  info: "ℹ️", INFO: "ℹ️",
 };
 
 export function NotificationBell() {

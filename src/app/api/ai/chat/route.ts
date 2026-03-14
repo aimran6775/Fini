@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
@@ -54,6 +55,13 @@ function buildMessages(
 
 export async function POST(req: NextRequest) {
   try {
+    // Auth check — prevent unauthenticated API abuse
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ content: "No autorizado" }, { status: 401 });
+    }
+
     const { messages, system, fileContent } = await req.json();
 
     const hasOpenAI = !!process.env.OPENAI_API_KEY;

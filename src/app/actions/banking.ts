@@ -28,6 +28,9 @@ export async function getBankAccount(accountId: string) {
 
 export async function createBankAccount(formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase.from("bank_accounts").insert({
     organization_id: formData.get("organization_id") as string,
     account_name: formData.get("account_name") as string,
@@ -113,7 +116,9 @@ export async function createBankTransaction(formData: FormData) {
 
 export async function deleteBankTransaction(txnId: string, orgId: string) {
   const supabase = await createClient();
-  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   // Get transaction to reverse balance
   const { data: txn } = await supabase
     .from("bank_transactions")
@@ -193,7 +198,9 @@ export async function createReconciliation(formData: FormData) {
 
 export async function markTransactionsReconciled(transactionIds: string[], orgId: string) {
   const supabase = await createClient();
-  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase
     .from("bank_transactions")
     .update({ is_reconciled: true })
@@ -238,6 +245,9 @@ export async function getContacts(orgId: string) {
 
 export async function createContact(formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase.from("contacts").insert({
     organization_id: formData.get("organization_id") as string,
     contact_type: formData.get("contact_type") as string || "CLIENT",
@@ -270,6 +280,9 @@ export async function getInventoryItems(orgId: string) {
 
 export async function createInventoryItem(formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase.from("inventory_items").insert({
     organization_id: formData.get("organization_id") as string,
     sku: formData.get("sku") as string,

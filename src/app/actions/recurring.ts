@@ -11,16 +11,34 @@ export async function getRecurringTransactions(orgId: string) {
   
   const { data, error } = await supabase
     .from("recurring_transactions")
-    .select(`
-      *,
-      invoice:fel_invoices(id, client_name, total_amount, status),
-      expense:expenses(id, vendor_name, total_amount, status)
-    `)
+    .select("*")
     .eq("organization_id", orgId)
     .order("next_date", { ascending: true });
   
   if (error) throw error;
-  return data || [];
+  if (!data || data.length === 0) return [];
+
+  // Manually resolve source names (no FK from source_id → invoices/expenses)
+  const invoiceIds = data.filter(r => r.source_type === "INVOICE").map(r => r.source_id);
+  const expenseIds = data.filter(r => r.source_type === "EXPENSE").map(r => r.source_id);
+
+  const [{ data: invoices }, { data: expenses }] = await Promise.all([
+    invoiceIds.length > 0
+      ? supabase.from("fel_invoices").select("id, client_name, total_amount, status").in("id", invoiceIds)
+      : Promise.resolve({ data: [] as any[] }),
+    expenseIds.length > 0
+      ? supabase.from("expenses").select("id, vendor_name, total_amount, status").in("id", expenseIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+
+  const invoiceMap = Object.fromEntries((invoices || []).map(i => [i.id, i]));
+  const expenseMap = Object.fromEntries((expenses || []).map(e => [e.id, e]));
+
+  return data.map(r => ({
+    ...r,
+    invoice: r.source_type === "INVOICE" ? invoiceMap[r.source_id] ?? null : null,
+    expense: r.source_type === "EXPENSE" ? expenseMap[r.source_id] ?? null : null,
+  }));
 }
 
 export async function createRecurringTransaction(formData: FormData) {
@@ -271,16 +289,34 @@ export async function getDueRecurringTransactions(orgId: string) {
   
   const { data, error } = await supabase
     .from("recurring_transactions")
-    .select(`
-      *,
-      invoice:fel_invoices(id, client_name, total_amount),
-      expense:expenses(id, vendor_name, total_amount)
-    `)
+    .select("*")
     .eq("organization_id", orgId)
     .eq("is_active", true)
     .lte("next_date", today)
     .order("next_date", { ascending: true });
   
   if (error) throw error;
-  return data || [];
+  if (!data || data.length === 0) return [];
+
+  // Manually resolve source names
+  const invoiceIds = data.filter(r => r.source_type === "INVOICE").map(r => r.source_id);
+  const expenseIds = data.filter(r => r.source_type === "EXPENSE").map(r => r.source_id);
+
+  const [{ data: invoices }, { data: expenses }] = await Promise.all([
+    invoiceIds.length > 0
+      ? supabase.from("fel_invoices").select("id, client_name, total_amount").in("id", invoiceIds)
+      : Promise.resolve({ data: [] as any[] }),
+    expenseIds.length > 0
+      ? supabase.from("expenses").select("id, vendor_name, total_amount").in("id", expenseIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+
+  const invoiceMap = Object.fromEntries((invoices || []).map(i => [i.id, i]));
+  const expenseMap = Object.fromEntries((expenses || []).map(e => [e.id, e]));
+
+  return data.map(r => ({
+    ...r,
+    invoice: r.source_type === "INVOICE" ? invoiceMap[r.source_id] ?? null : null,
+    expense: r.source_type === "EXPENSE" ? expenseMap[r.source_id] ?? null : null,
+  }));
 }

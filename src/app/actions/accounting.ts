@@ -18,6 +18,8 @@ export async function getChartOfAccounts(orgId: string) {
 
 export async function createAccount(formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const parentAccountId = formData.get("parent_account_id") as string;
 

@@ -40,6 +40,9 @@ export async function getEmployees(orgId: string) {
 
 export async function createEmployee(formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const orgId = formData.get("organization_id") as string;
 
   const { error } = await supabase.from("employees").insert({
@@ -232,6 +235,8 @@ export async function getEmployee(id: string) {
 
 export async function updateEmployee(id: string, formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const { error } = await supabase
     .from("employees")
@@ -261,6 +266,8 @@ export async function updateEmployee(id: string, formData: FormData) {
 
 export async function terminateEmployee(id: string, terminationDate: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const { error } = await supabase
     .from("employees")

@@ -1,7 +1,7 @@
 // Guatemala FiniTax — Role-Based Access Control
 // Roles: ADMIN, ACCOUNTANT, EMPLOYEE
 
-export type Role = "admin" | "accountant" | "employee";
+export type Role = "ADMIN" | "ACCOUNTANT" | "EMPLOYEE";
 
 export const PERMISSIONS = {
   // Organization
@@ -104,9 +104,9 @@ export const PERMISSIONS = {
 export type Permission = keyof typeof PERMISSIONS;
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  admin: Object.keys(PERMISSIONS) as Permission[],
+  ADMIN: Object.keys(PERMISSIONS) as Permission[],
 
-  accountant: [
+  ACCOUNTANT: [
     "org.view",
     "org.members.view",
     "fel.view", "fel.create", "fel.edit", "fel.void", "fel.export",
@@ -128,7 +128,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "notifications.view",
   ],
 
-  employee: [
+  EMPLOYEE: [
     "org.view",
     "fel.view",
     "expenses.view", "expenses.create",
@@ -154,9 +154,9 @@ export function hasAllPermissions(role: Role, permissions: Permission[]): boolea
 
 export function getRoleLabel(role: Role): string {
   const labels: Record<Role, string> = {
-    admin: "Administrador",
-    accountant: "Contador",
-    employee: "Empleado",
+    ADMIN: "Administrador",
+    ACCOUNTANT: "Contador",
+    EMPLOYEE: "Empleado",
   };
   return labels[role] || role;
 }

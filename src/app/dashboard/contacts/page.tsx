@@ -151,7 +151,7 @@ export default async function ContactsPage({
                         {c.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="font-mono">{c.nit || "CF"}</TableCell>
+                    <TableCell className="font-mono">{c.nit_number || "CF"}</TableCell>
                     <TableCell>
                       <Badge variant={c.contact_type === "CLIENT" ? "default" : c.contact_type === "VENDOR" ? "secondary" : "outline"}>
                         {c.contact_type === "CLIENT" ? "Cliente" : c.contact_type === "VENDOR" ? "Proveedor" : "Ambos"}

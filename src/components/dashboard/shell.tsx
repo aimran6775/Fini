@@ -38,7 +38,7 @@ export function DashboardShell({ user, profile, organizations, children }: Dashb
         currentOrg,
         setCurrentOrg,
         organizations,
-        userRole: currentOrg?.role ?? "employee",
+        userRole: currentOrg?.role ?? "EMPLOYEE",
       }}
     >
       <div className="flex h-screen overflow-hidden bg-white">
