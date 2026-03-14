@@ -69,11 +69,42 @@ export default function LandingPage() {
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const heroBgRef = useRef<HTMLVideoElement>(null);
+  const demoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Autoplay retry — some mobile browsers block autoplay even when muted.
+  // Try once on mount; if that fails, retry on the first user interaction.
+  useEffect(() => {
+    const videos = [heroBgRef.current, demoRef.current].filter(Boolean) as HTMLVideoElement[];
+
+    const tryPlay = () => {
+      videos.forEach((v) => {
+        if (v.paused) v.play().catch(() => {});
+      });
+    };
+
+    // Initial attempt (handles most browsers)
+    tryPlay();
+
+    // Fallback: play on first user touch/click (iOS low-power mode, etc.)
+    const onInteraction = () => {
+      tryPlay();
+      window.removeEventListener("touchstart", onInteraction);
+      window.removeEventListener("click", onInteraction);
+    };
+    window.addEventListener("touchstart", onInteraction, { once: true, passive: true });
+    window.addEventListener("click", onInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener("touchstart", onInteraction);
+      window.removeEventListener("click", onInteraction);
+    };
   }, []);
 
   // Feature icons mapping
@@ -172,15 +203,19 @@ export default function LandingPage() {
           HERO SECTION
           ═══════════════════════════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center justify-center pt-20">
-        {/* Background video */}
+        {/* Background video — autoplay muted for all browsers */}
         <video
+          ref={heroBgRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
+          poster="/images/hero-poster.jpg"
           className="absolute inset-0 h-full w-full object-cover"
-          src="/videos/hero.mp4"
-        />
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+        </video>
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/70 via-[#030712]/60 to-[#030712]" />
 
@@ -254,13 +289,17 @@ export default function LandingPage() {
             {/* Product demo video */}
             <div className="p-3 sm:p-4">
               <video
+                ref={demoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
+                preload="auto"
+                poster="/images/hero-poster.jpg"
                 className="w-full rounded-lg"
-                src="/videos/hero.mp4"
-              />
+              >
+                <source src="/videos/hero.mp4" type="video/mp4" />
+              </video>
             </div>
           </div>
         </div>
