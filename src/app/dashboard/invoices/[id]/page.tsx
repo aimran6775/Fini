@@ -84,7 +84,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {invoice.status === "AUTHORIZED" && organization && (
+          {organization && (
             <InvoicePrintButton invoice={invoice} organization={organization} />
           )}
           {invoice.status === "DRAFT" && (

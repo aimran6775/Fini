@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, FileText, TrendingUp, TrendingDown, DollarSign, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { getQuickFinancials } from "@/app/actions/reports";
+import { getQuickFinancials, getDashboardTrends } from "@/app/actions/reports";
 import { MONTH_NAMES } from "@/lib/tax-utils";
+import { ReportsBarChart } from "@/components/dashboard/reports-charts";
 
 export default async function ReportsPage() {
   const supabase = await createClient();
@@ -24,6 +25,7 @@ export default async function ReportsPage() {
   const orgId = membership.organization_id;
 
   const financials = await getQuickFinancials(orgId);
+  const trends = await getDashboardTrends(orgId);
   const now = new Date();
   const currentMonth = MONTH_NAMES[now.getMonth()];
 
@@ -155,6 +157,19 @@ export default async function ReportsPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Revenue vs Expenses Chart */}
+      <div>
+        <h2 className="mb-3 text-lg font-semibold flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-muted-foreground" />
+          Tendencia de 6 Meses
+        </h2>
+        <Card>
+          <CardContent className="p-4 pt-6">
+            <ReportsBarChart data={trends.monthly} />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Report Links */}

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { MONTH_NAMES } from "@/lib/tax-utils";
 
 export interface AccountBalance {
   account_id: string;
@@ -285,6 +286,113 @@ export async function getQuickFinancials(orgId: string) {
       ivaPagar: Math.max(0, monthIvaDebito - monthIvaCredito),
     },
   };
+}
+
+// ─── MONTHLY TRENDS (for Dashboard charts) ─────────────────────
+
+export interface MonthlyDataPoint {
+  month: string;         // "Ene", "Feb", etc.
+  monthFull: string;     // "Enero 2026"
+  revenue: number;
+  expenses: number;
+  netIncome: number;
+}
+
+export interface ExpenseCategorySlice {
+  name: string;
+  value: number;
+}
+
+export interface DashboardTrends {
+  monthly: MonthlyDataPoint[];
+  expensesByCategory: ExpenseCategorySlice[];
+  currentMonthRevenue: number;
+  previousMonthRevenue: number;
+  currentMonthExpenses: number;
+  previousMonthExpenses: number;
+}
+
+const SHORT_MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+export async function getDashboardTrends(orgId: string): Promise<DashboardTrends> {
+  const supabase = await createClient();
+  const now = new Date();
+
+  // Build date ranges for last 6 months
+  const ranges: { start: string; end: string; label: string; labelFull: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const start = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+    const endDate = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    const end = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")}`;
+    ranges.push({
+      start,
+      end,
+      label: SHORT_MONTHS[d.getMonth()],
+      labelFull: `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`,
+    });
+  }
+
+  // Fetch all invoices & expenses in one go for the full range
+  const overallStart = ranges[0].start;
+  const overallEnd = ranges[ranges.length - 1].end;
+
+  const [{ data: invoices }, { data: expenses }] = await Promise.all([
+    supabase.from("fel_invoices")
+      .select("total, invoice_date")
+      .eq("organization_id", orgId)
+      .eq("status", "CERTIFIED")
+      .gte("invoice_date", overallStart)
+      .lte("invoice_date", overallEnd),
+    supabase.from("expenses")
+      .select("amount, category, expense_date")
+      .eq("organization_id", orgId)
+      .eq("status", "APPROVED")
+      .gte("expense_date", overallStart)
+      .lte("expense_date", overallEnd),
+  ]);
+
+  // Bucket into months
+  const monthly: MonthlyDataPoint[] = ranges.map((r) => {
+    const rev = (invoices || [])
+      .filter((i: any) => i.invoice_date >= r.start && i.invoice_date <= r.end)
+      .reduce((s: number, i: any) => s + Number(i.total || 0), 0);
+    const exp = (expenses || [])
+      .filter((e: any) => e.expense_date >= r.start && e.expense_date <= r.end)
+      .reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    return { month: r.label, monthFull: r.labelFull, revenue: rev, expenses: exp, netIncome: rev - exp };
+  });
+
+  // Expense categories for current period (last 6 months)
+  const categoryMap = new Map<string, number>();
+  const CATEGORY_LABELS: Record<string, string> = {
+    SERVICIOS: "Servicios",
+    SUMINISTROS: "Suministros",
+    ALQUILER: "Alquiler",
+    TRANSPORTE: "Transporte",
+    SALARIOS: "Salarios",
+    IMPUESTOS: "Impuestos",
+    MANTENIMIENTO: "Mantenimiento",
+    MARKETING: "Marketing",
+    SEGUROS: "Seguros",
+    OTROS: "Otros",
+  };
+  for (const e of expenses || []) {
+    const cat = CATEGORY_LABELS[(e as any).category] || (e as any).category || "Otros";
+    categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number((e as any).amount || 0));
+  }
+  const expensesByCategory: ExpenseCategorySlice[] = Array.from(categoryMap.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
+  // Current vs previous month for trend %
+  const currentMonthRevenue = monthly[monthly.length - 1]?.revenue || 0;
+  const previousMonthRevenue = monthly[monthly.length - 2]?.revenue || 0;
+  const currentMonthExpenses = monthly[monthly.length - 1]?.expenses || 0;
+  const previousMonthExpenses = monthly[monthly.length - 2]?.expenses || 0;
+
+  return { monthly, expensesByCategory, currentMonthRevenue, previousMonthRevenue, currentMonthExpenses, previousMonthExpenses };
 }
 
 // ─── LIBRO MAYOR (General Ledger) ──────────────────────────────

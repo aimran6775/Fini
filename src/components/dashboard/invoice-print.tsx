@@ -64,11 +64,35 @@ export function InvoicePrintButton({ invoice, organization }: InvoicePrintProps)
     }, 250);
   };
 
+  const handleDownloadPDF = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Por favor permite las ventanas emergentes para descargar el PDF");
+      return;
+    }
+
+    const html = generateInvoiceHTML(invoice, organization);
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+
+    // Add a small banner to tell the user to save as PDF
+    setTimeout(() => {
+      printWindow.print();
+    }, 300);
+  };
+
   return (
-    <Button variant="outline" size="sm" onClick={handlePrint}>
-      <Printer className="h-4 w-4 mr-2" />
-      Imprimir
-    </Button>
+    <div className="flex items-center gap-1">
+      <Button variant="outline" size="sm" onClick={handlePrint}>
+        <Printer className="h-4 w-4 mr-2" />
+        Imprimir
+      </Button>
+      <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+        <Download className="h-4 w-4 mr-2" />
+        PDF
+      </Button>
+    </div>
   );
 }
 

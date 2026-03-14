@@ -2,13 +2,23 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import {
-  Receipt, Wallet, TrendingUp, TrendingDown, DollarSign,
+  Receipt, TrendingUp, TrendingDown, DollarSign,
   FileText, Users, Calculator, ArrowUpRight, ArrowDownRight,
-  CalendarClock, Plus, ChevronRight, Landmark, Boxes, Settings,
+  CalendarClock, Plus, ChevronRight, Landmark, Settings,
+  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { RevenueExpenseChart, ExpenseCategoryChart } from "@/components/dashboard/dashboard-charts";
+import { PeriodSelector, getPeriodRange } from "@/components/dashboard/period-selector";
+import { getDashboardTrends } from "@/app/actions/reports";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -20,29 +30,34 @@ export default async function DashboardPage() {
     .limit(1)
     .single();
 
-  // If no membership found, the layout will show SetupWizard instead
-  // Return null since this page won't actually be rendered
-  if (!membership) {
-    return null;
-  }
+  if (!membership) return null;
 
   const orgId = membership.organization_id;
   const org = (membership as any).organization;
+  if (!org) return null;
 
-  // Handle case where org might be null
-  if (!org) {
-    return null;
+  // Determine date range based on period selector
+  const { start: periodStart, end: periodEnd } = getPeriodRange(params.period || null);
+
+  // Build queries with optional date range
+  let invoiceQuery = supabase
+    .from("fel_invoices")
+    .select("total, status", { count: "exact" })
+    .eq("organization_id", orgId);
+
+  let expenseQuery = supabase
+    .from("expenses")
+    .select("amount, status", { count: "exact" })
+    .eq("organization_id", orgId);
+
+  if (periodStart && periodEnd) {
+    invoiceQuery = invoiceQuery.gte("invoice_date", periodStart).lte("invoice_date", periodEnd);
+    expenseQuery = expenseQuery.gte("expense_date", periodStart).lte("expense_date", periodEnd);
   }
 
-  const [invoicesRes, expensesRes, employeesRes, bankRes] = await Promise.all([
-    supabase
-      .from("fel_invoices")
-      .select("total, status", { count: "exact" })
-      .eq("organization_id", orgId),
-    supabase
-      .from("expenses")
-      .select("amount, status", { count: "exact" })
-      .eq("organization_id", orgId),
+  const [invoicesRes, expensesRes, employeesRes, bankRes, trends] = await Promise.all([
+    invoiceQuery,
+    expenseQuery,
     supabase
       .from("employees")
       .select("id", { count: "exact" })
@@ -53,6 +68,7 @@ export default async function DashboardPage() {
       .select("current_balance")
       .eq("organization_id", orgId)
       .eq("is_active", true),
+    getDashboardTrends(orgId),
   ]);
 
   const totalInvoiced = invoicesRes.data
@@ -65,6 +81,10 @@ export default async function DashboardPage() {
 
   const netIncome = totalInvoiced - totalExpenses;
   const bankBalance = bankRes.data?.reduce((sum: number, b: any) => sum + Number(b.current_balance || 0), 0) ?? 0;
+
+  // ── Compute REAL trends ──
+  const revenueTrend = computeTrendPercent(trends.currentMonthRevenue, trends.previousMonthRevenue);
+  const expenseTrend = computeTrendPercent(trends.currentMonthExpenses, trends.previousMonthExpenses);
 
   // Get recent invoices
   const { data: recentInvoices } = await supabase
@@ -101,8 +121,8 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
-            <Link 
-              href="/dashboard/settings" 
+            <Link
+              href="/dashboard/settings"
               className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors whitespace-nowrap"
             >
               Configurar <ChevronRight className="h-4 w-4" />
@@ -120,7 +140,10 @@ export default async function DashboardPage() {
             {org.name} · NIT {org.nit_number}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Suspense fallback={null}>
+            <PeriodSelector />
+          </Suspense>
           <Link href="/dashboard/invoices/new"
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors shadow-sm">
             <Plus className="h-4 w-4" /> Nueva Factura
@@ -139,16 +162,16 @@ export default async function DashboardPage() {
           value={formatCurrency(totalInvoiced)}
           icon={<TrendingUp className="h-4 w-4" />}
           iconBg="bg-emerald-50 text-emerald-600"
-          trend={totalInvoiced > 0 ? "+12%" : undefined}
-          trendUp={true}
+          trend={revenueTrend}
+          trendUp={revenueTrend ? !revenueTrend.startsWith("-") : undefined}
         />
         <KpiCard
           label="Gastos"
           value={formatCurrency(totalExpenses)}
           icon={<TrendingDown className="h-4 w-4" />}
           iconBg="bg-rose-50 text-rose-600"
-          trend={totalExpenses > 0 ? "-3%" : undefined}
-          trendUp={false}
+          trend={expenseTrend}
+          trendUp={expenseTrend ? expenseTrend.startsWith("-") : undefined}
         />
         <KpiCard
           label="Utilidad Neta"
@@ -162,6 +185,32 @@ export default async function DashboardPage() {
           icon={<Landmark className="h-4 w-4" />}
           iconBg="bg-blue-50 text-blue-600"
         />
+      </div>
+
+      {/* ─── Charts Row ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Revenue vs Expenses — Area Chart */}
+        <div className="lg:col-span-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Ingresos vs Gastos</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Últimos 6 meses</p>
+            </div>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <RevenueExpenseChart data={trends.monthly} />
+        </div>
+
+        {/* Expense Categories — Donut */}
+        <div className="lg:col-span-2 rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Gastos por Categoría</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Distribución últimos 6 meses</p>
+            </div>
+          </div>
+          <ExpenseCategoryChart data={trends.expensesByCategory} />
+        </div>
       </div>
 
       {/* ─── Middle Grid ─── */}
@@ -281,24 +330,20 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Obligations */}
+        {/* Obligations — dynamic dates */}
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-muted-foreground" /> Próximas Obligaciones
           </h2>
           <div className="rounded-lg border divide-y">
-            {[
-              { tax: "IVA Mensual", desc: "Vence día 15 del mes siguiente", status: "Pendiente", color: "text-amber-700 bg-amber-50" },
-              { tax: "ISR Trimestral", desc: "Vence cada trimestre", status: "Próximo", color: "text-blue-700 bg-blue-50" },
-              { tax: "ISO Trimestral", desc: "1% sobre activos o ingresos", status: "Próximo", color: "text-violet-700 bg-violet-50" },
-            ].map((ob) => (
+            {getUpcomingObligations().map((ob) => (
               <div key={ob.tax} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-sm font-medium">{ob.tax}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{ob.desc}</p>
                 </div>
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${ob.color}`}>
-                  {ob.status}
+                  {ob.daysLeft <= 7 ? "¡Urgente!" : ob.daysLeft <= 15 ? "Próximo" : "Pendiente"}
                 </span>
               </div>
             ))}
@@ -335,7 +380,7 @@ function KpiCard({ label, value, icon, iconBg, trend, trendUp }: {
   value: string;
   icon: React.ReactNode;
   iconBg: string;
-  trend?: string;
+  trend?: string | null;
   trendUp?: boolean;
 }) {
   return (
@@ -362,4 +407,57 @@ function getGreeting() {
   if (h < 12) return "Buenos días,";
   if (h < 18) return "Buenas tardes,";
   return "Buenas noches,";
+}
+
+/** Compute month-over-month % change. Returns null when no data */
+function computeTrendPercent(current: number, previous: number): string | null {
+  if (previous === 0 && current === 0) return null;
+  if (previous === 0) return "+100%";
+  const pct = ((current - previous) / previous) * 100;
+  const sign = pct >= 0 ? "+" : "";
+  return `${sign}${pct.toFixed(0)}%`;
+}
+
+/** Dynamic upcoming tax obligations based on current date */
+function getUpcomingObligations() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  // IVA: 15th of next month
+  const ivaDate = new Date(year, month + 1, 15);
+  const ivaDays = Math.ceil((ivaDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  // ISR Trimestral: end of next quarter month (Mar 31, Jun 30, Sep 30, Dec 31)
+  const quarterEndMonths = [2, 5, 8, 11];
+  let nextQuarter = quarterEndMonths.find((m) => m >= month) ?? quarterEndMonths[0];
+  let nextQuarterYear = year;
+  if (nextQuarter < month) nextQuarterYear++;
+  const lastDayOfQuarter = new Date(nextQuarterYear, nextQuarter + 1, 0).getDate();
+  const isrDate = new Date(nextQuarterYear, nextQuarter, lastDayOfQuarter);
+  const isrDays = Math.ceil((isrDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  const isoDate = isrDate;
+  const isoDays = isrDays;
+
+  return [
+    {
+      tax: "IVA Mensual",
+      desc: `Vence ${ivaDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
+      daysLeft: ivaDays,
+      color: ivaDays <= 7 ? "text-red-700 bg-red-50" : ivaDays <= 15 ? "text-amber-700 bg-amber-50" : "text-blue-700 bg-blue-50",
+    },
+    {
+      tax: "ISR Trimestral",
+      desc: `Vence ${isrDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
+      daysLeft: isrDays,
+      color: isrDays <= 7 ? "text-red-700 bg-red-50" : isrDays <= 15 ? "text-amber-700 bg-amber-50" : "text-violet-700 bg-violet-50",
+    },
+    {
+      tax: "ISO Trimestral",
+      desc: `Vence ${isoDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
+      daysLeft: isoDays,
+      color: isoDays <= 7 ? "text-red-700 bg-red-50" : isoDays <= 15 ? "text-amber-700 bg-amber-50" : "text-violet-700 bg-violet-50",
+    },
+  ];
 }
