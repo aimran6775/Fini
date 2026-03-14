@@ -37,9 +37,10 @@ export async function updateSession(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith("/auth/")
   );
   const isApiRoute = pathname.startsWith("/api/");
+  const isStaticAsset = pathname === "/sitemap.xml" || pathname === "/robots.txt" || pathname === "/icon.svg" || pathname === "/opengraph-image";
 
   // Redirect unauthenticated users to login
-  if (!user && !isPublicRoute && !isApiRoute) {
+  if (!user && !isPublicRoute && !isApiRoute && !isStaticAsset) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
