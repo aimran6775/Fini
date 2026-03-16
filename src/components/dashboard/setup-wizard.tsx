@@ -61,7 +61,9 @@ export function SetupWizard({ userName }: { userName?: string }) {
     startTransition(async () => {
       const formData = new FormData();
       formData.set("name", userName || "Mi Cuenta");
-      formData.set("nit", "CF");
+      // Use a unique placeholder NIT so the UNIQUE constraint never collides
+      const uniqueNit = `CF-${Date.now().toString(36)}`;
+      formData.set("nit", uniqueNit);
       formData.set("contribuyente_type", "PEQUENO");
       formData.set("isr_regime", "SIMPLIFICADO");
 
@@ -81,7 +83,7 @@ export function SetupWizard({ userName }: { userName?: string }) {
       
       if (accountType === "personal") {
         formData.set("name", name);
-        formData.set("nit", nit || "CF");
+        formData.set("nit", nit || `CF-${Date.now().toString(36)}`);
         formData.set("contribuyente_type", "PEQUENO");
         formData.set("isr_regime", "SIMPLIFICADO");
       } else {

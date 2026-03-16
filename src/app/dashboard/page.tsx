@@ -102,7 +102,7 @@ export default async function DashboardPage({
 
   const greeting = getGreeting();
   const firstName = userProfile?.first_name || user.user_metadata?.full_name?.split(" ")[0] || "Usuario";
-  const needsSetup = org.nit_number === "CF";
+  const needsSetup = org.nit_number === "CF" || org.nit_number.startsWith("CF-");
   const userRole = (membership as any).role;
 
   // ── Personalization data ──
