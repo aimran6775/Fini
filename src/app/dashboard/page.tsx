@@ -10,7 +10,8 @@ import {
 import Link from "next/link";
 import { Suspense } from "react";
 import { RevenueExpenseChart, ExpenseCategoryChart } from "@/components/dashboard/dashboard-charts";
-import { PeriodSelector, getPeriodRange } from "@/components/dashboard/period-selector";
+import { PeriodSelector } from "@/components/dashboard/period-selector";
+import { getPeriodRange } from "@/lib/period-utils";
 import { getDashboardTrends } from "@/app/actions/reports";
 
 export default async function DashboardPage({
