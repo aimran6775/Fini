@@ -15,6 +15,138 @@ import {
    COMPONENTS
    ══════════════════════════════════════════════════════════════════ */
 
+/* Static dashboard mockup for the landing page preview */
+function DashboardMockup() {
+  const kpis = [
+    { label: "Ingresos", value: "Q 148,320", trend: "+12%", up: true, color: "text-emerald-400" },
+    { label: "Gastos", value: "Q 62,480", trend: "-3%", up: false, color: "text-rose-400" },
+    { label: "Utilidad Neta", value: "Q 85,840", trend: null, up: true, color: "text-violet-400" },
+    { label: "Saldo Bancario", value: "Q 214,600", trend: null, up: true, color: "text-blue-400" },
+  ];
+
+  const invoices = [
+    { client: "Distribuidora del Sur", date: "12 Mar", amount: "Q 18,400", status: "Certificada", statusColor: "bg-emerald-500/20 text-emerald-400" },
+    { client: "Tech Solutions GT", date: "10 Mar", amount: "Q 7,200", status: "Certificada", statusColor: "bg-emerald-500/20 text-emerald-400" },
+    { client: "Café Antigua S.A.", date: "08 Mar", amount: "Q 3,850", status: "Borrador", statusColor: "bg-white/10 text-white/50" },
+    { client: "Constructora Maya", date: "05 Mar", amount: "Q 42,100", status: "Certificada", statusColor: "bg-emerald-500/20 text-emerald-400" },
+  ];
+
+  const chartBars = [
+    { month: "Oct", revenue: 45, expense: 30 },
+    { month: "Nov", revenue: 58, expense: 35 },
+    { month: "Dic", revenue: 72, expense: 42 },
+    { month: "Ene", revenue: 55, expense: 38 },
+    { month: "Feb", revenue: 68, expense: 40 },
+    { month: "Mar", revenue: 82, expense: 45 },
+  ];
+
+  return (
+    <div className="flex rounded-lg overflow-hidden bg-[#09090b] text-white min-h-[340px] sm:min-h-[420px]">
+      {/* Sidebar */}
+      <div className="hidden sm:flex w-44 flex-col border-r border-white/5 bg-[#0a0a0a] py-3 px-2 gap-0.5">
+        <div className="flex items-center gap-2 px-2 mb-4">
+          <div className="h-6 w-6 rounded-md bg-indigo-600 flex items-center justify-center text-[10px] font-black">F</div>
+          <span className="text-xs font-semibold text-white/90">FiniTax</span>
+        </div>
+        {[
+          { label: "Inicio", active: true },
+          { label: "Facturación FEL", active: false },
+          { label: "Gastos", active: false },
+          { label: "Bancos", active: false },
+          { label: "Planilla", active: false },
+          { label: "Impuestos", active: false },
+          { label: "Reportes", active: false },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className={`px-2.5 py-1.5 rounded-md text-[11px] ${
+              item.active
+                ? "bg-white/5 text-white font-medium"
+                : "text-white/30 hover:text-white/50"
+            }`}
+          >
+            {item.label}
+          </div>
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 p-3 sm:p-4 space-y-3 sm:space-y-4 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-white/30">Buenos días,</p>
+            <p className="text-sm font-semibold text-white/90">Carlos</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="h-6 px-2 rounded-md bg-indigo-600/20 text-indigo-400 text-[9px] font-medium flex items-center">+ Nueva Factura</div>
+          </div>
+        </div>
+
+        {/* KPI cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {kpis.map((kpi) => (
+            <div key={kpi.label} className="rounded-md border border-white/5 bg-white/[0.02] p-2 sm:p-2.5">
+              <p className="text-[9px] text-white/30">{kpi.label}</p>
+              <p className="text-xs sm:text-sm font-bold text-white/90 mt-0.5">{kpi.value}</p>
+              {kpi.trend && (
+                <span className={`text-[9px] font-medium ${kpi.up ? "text-emerald-400" : "text-rose-400"}`}>
+                  {kpi.trend}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Chart + table row */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+          {/* Mini chart */}
+          <div className="lg:col-span-3 rounded-md border border-white/5 bg-white/[0.02] p-2.5">
+            <p className="text-[10px] font-medium text-white/50 mb-2">Ingresos vs Gastos</p>
+            <div className="flex items-end gap-1.5 h-20 sm:h-28">
+              {chartBars.map((bar) => (
+                <div key={bar.month} className="flex-1 flex flex-col items-center gap-0.5">
+                  <div className="w-full flex gap-px justify-center">
+                    <div
+                      className="w-2 sm:w-3 rounded-t bg-emerald-500/60"
+                      style={{ height: `${bar.revenue}%` }}
+                    />
+                    <div
+                      className="w-2 sm:w-3 rounded-t bg-rose-500/40"
+                      style={{ height: `${bar.expense}%` }}
+                    />
+                  </div>
+                  <span className="text-[8px] text-white/20">{bar.month}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mini invoice table */}
+          <div className="lg:col-span-2 rounded-md border border-white/5 bg-white/[0.02] p-2.5">
+            <p className="text-[10px] font-medium text-white/50 mb-2">Facturas Recientes</p>
+            <div className="space-y-1.5">
+              {invoices.map((inv) => (
+                <div key={inv.client} className="flex items-center justify-between text-[10px]">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white/70 truncate">{inv.client}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2 shrink-0">
+                    <span className="text-white/50 font-medium">{inv.amount}</span>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-medium ${inv.statusColor}`}>
+                      {inv.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* Animated counter */
 function CountUp({ target, suffix = "", decimals = 0 }: { target: number; suffix?: string; decimals?: number }) {
   const [count, setCount] = useState(0);
@@ -70,7 +202,6 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const heroBgRef = useRef<HTMLVideoElement>(null);
-  const demoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -81,7 +212,7 @@ export default function LandingPage() {
   // Autoplay retry — some mobile browsers block autoplay even when muted.
   // Try once on mount; if that fails, retry on the first user interaction.
   useEffect(() => {
-    const videos = [heroBgRef.current, demoRef.current].filter(Boolean) as HTMLVideoElement[];
+    const videos = [heroBgRef.current].filter(Boolean) as HTMLVideoElement[];
 
     const tryPlay = () => {
       videos.forEach((v) => {
@@ -286,20 +417,9 @@ export default function LandingPage() {
               </div>
             </div>
             
-            {/* Product demo video */}
+            {/* Dashboard demo mockup */}
             <div className="p-3 sm:p-4">
-              <video
-                ref={demoRef}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                poster="/images/hero-poster.jpg"
-                className="w-full rounded-lg"
-              >
-                <source src="/videos/hero.mp4" type="video/mp4" />
-              </video>
+              <DashboardMockup />
             </div>
           </div>
         </div>
