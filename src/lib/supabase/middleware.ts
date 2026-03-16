@@ -32,17 +32,40 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Public routes that don't require auth
-  const publicRoutes = ["/", "/login", "/signup", "/auth"];
+  const publicRoutes = ["/", "/login", "/signup", "/auth", "/admin/login"];
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith("/auth/")
   );
   const isApiRoute = pathname.startsWith("/api/");
   const isStaticAsset = pathname === "/sitemap.xml" || pathname === "/robots.txt" || pathname === "/icon.svg" || pathname === "/opengraph-image";
+  const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
+
+  // Admin routes: require auth + admin email
+  if (isAdminRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+    if (user.email !== "admin@finitax.com") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
 
   // Redirect unauthenticated users to login
   if (!user && !isPublicRoute && !isApiRoute && !isStaticAsset) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated admin to admin panel
+  if (user && user.email === "admin@finitax.com" && pathname === "/admin/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
     return NextResponse.redirect(url);
   }
 
