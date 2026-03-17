@@ -225,7 +225,7 @@ export default async function DashboardPage({
           label="Utilidad Neta"
           value={formatCurrency(netIncome)}
           icon={<DollarSign className="h-4 w-4" />}
-          iconBg="bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400"
+          iconBg="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
         />
         <KpiCard
           label="Saldo Bancario"
@@ -268,12 +268,12 @@ export default async function DashboardPage({
           <h2 className="text-sm font-semibold text-foreground">Acciones Rápidas</h2>
           <div className="space-y-1.5">
             {[
-              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-950" },
+              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950" },
               { label: "Registrar Gasto", href: "/dashboard/expenses/new", icon: Receipt, color: "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950" },
               { label: "Partida de Diario", href: "/dashboard/journal/new", icon: FileText, color: "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950" },
               { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, color: "text-cyan-600 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-950" },
               { label: "Calcular Impuesto", href: "/dashboard/tax", icon: Calculator, color: "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950" },
-              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-950" },
+              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "text-slate-600 bg-slate-50 dark:text-slate-400 dark:bg-slate-950" },
             ].map((action) => (
               <Link
                 key={action.href}
@@ -522,13 +522,13 @@ function getUpcomingObligations() {
       tax: "ISR Trimestral",
       desc: `Vence ${isrDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
       daysLeft: isrDays,
-      color: isrDays <= 7 ? "text-red-700 bg-red-50" : isrDays <= 15 ? "text-amber-700 bg-amber-50" : "text-violet-700 bg-violet-50",
+      color: isrDays <= 7 ? "text-red-700 bg-red-50" : isrDays <= 15 ? "text-amber-700 bg-amber-50" : "text-blue-700 bg-blue-50",
     },
     {
       tax: "ISO Trimestral",
       desc: `Vence ${isoDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
       daysLeft: isoDays,
-      color: isoDays <= 7 ? "text-red-700 bg-red-50" : isoDays <= 15 ? "text-amber-700 bg-amber-50" : "text-violet-700 bg-violet-50",
+      color: isoDays <= 7 ? "text-red-700 bg-red-50" : isoDays <= 15 ? "text-amber-700 bg-amber-50" : "text-blue-700 bg-blue-50",
     },
   ];
 }

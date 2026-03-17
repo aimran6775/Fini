@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050514] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] relative overflow-hidden">
       {/* Grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
       

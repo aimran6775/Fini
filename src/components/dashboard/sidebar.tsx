@@ -87,7 +87,7 @@ export function Sidebar({ open, onToggle, currentOrg, organizations, onOrgChange
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white text-xs font-black">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-black">
             F
           </div>
           {open && (

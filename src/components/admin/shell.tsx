@@ -14,7 +14,7 @@ export function AdminShell({ userEmail, children }: AdminShellProps) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#050514]">
+    <div className="flex h-screen overflow-hidden bg-[#020617]">
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
         <div

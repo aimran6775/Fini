@@ -21,13 +21,13 @@ export default async function AdminDashboardPage() {
 
   const statCards = [
     { label: "Organizaciones", value: stats.orgCount, icon: Building2, color: "text-blue-400", bg: "bg-blue-500/10" },
-    { label: "Usuarios", value: stats.userCount, icon: Users2, color: "text-purple-400", bg: "bg-purple-500/10" },
+    { label: "Usuarios", value: stats.userCount, icon: Users2, color: "text-sky-400", bg: "bg-sky-500/10" },
     { label: "Facturas", value: stats.invoiceCount, icon: FileText, color: "text-green-400", bg: "bg-green-500/10" },
     { label: "Gastos", value: stats.expenseCount, icon: Receipt, color: "text-orange-400", bg: "bg-orange-500/10" },
     { label: "Empleados", value: stats.employeeCount, icon: Users2, color: "text-cyan-400", bg: "bg-cyan-500/10" },
     { label: "Contactos", value: stats.contactCount, icon: Contact2, color: "text-pink-400", bg: "bg-pink-500/10" },
     { label: "Cuentas Bancarias", value: stats.bankAccountCount, icon: Landmark, color: "text-amber-400", bg: "bg-amber-500/10" },
-    { label: "Asientos Diario", value: stats.journalCount, icon: BookMarked, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+    { label: "Asientos Diario", value: stats.journalCount, icon: BookMarked, color: "text-blue-400", bg: "bg-blue-500/10" },
     { label: "Planillas", value: stats.payrollCount, icon: PiggyBank, color: "text-teal-400", bg: "bg-teal-500/10" },
     { label: "Declaraciones", value: stats.taxCount, icon: Calculator, color: "text-rose-400", bg: "bg-rose-500/10" },
     { label: "Notificaciones", value: stats.notifCount, icon: Bell, color: "text-yellow-400", bg: "bg-yellow-500/10" },

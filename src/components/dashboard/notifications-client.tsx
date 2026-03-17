@@ -28,7 +28,7 @@ function TypeIcon({ type, size = "md" }: { type: string; size?: "sm" | "md" }) {
     case "tax_deadline": case "TAX_DEADLINE":
       return <Calendar className={`${cls} text-amber-500`} />;
     case "invoice": case "INVOICE": case "INVOICE_AUTHORIZED": case "INVOICE_VOIDED":
-      return <FileText className={`${cls} text-indigo-500`} />;
+      return <FileText className={`${cls} text-blue-500`} />;
     case "expense": case "EXPENSE": case "EXPENSE_APPROVED":
       return <Receipt className={`${cls} text-emerald-500`} />;
     case "payroll": case "PAYROLL": case "PAYROLL_PROCESSED":

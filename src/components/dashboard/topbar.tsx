@@ -104,7 +104,7 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted transition-colors"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[11px] font-semibold">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white text-[11px] font-semibold">
               {initials}
             </div>
             <span className="hidden md:block text-sm font-medium text-foreground max-w-[120px] truncate">{displayName}</span>

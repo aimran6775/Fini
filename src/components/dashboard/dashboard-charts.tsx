@@ -147,7 +147,7 @@ interface ExpenseCategoryChartProps {
   data: ExpenseCategorySlice[];
 }
 
-const PIE_COLORS = ["#6366f1", "#f59e0b", "#10b981", "#f43f5e", "#3b82f6", "#8b5cf6"];
+const PIE_COLORS = ["#2563eb", "#f59e0b", "#10b981", "#f43f5e", "#3b82f6", "#0891b2"];
 
 function PieTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;

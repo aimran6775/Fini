@@ -126,7 +126,7 @@ function generateInvoiceHTML(invoice: InvoicePrintProps["invoice"], org: Invoice
     .company h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
     .company p { color: #666; font-size: 11px; }
     .invoice-info { text-align: right; }
-    .invoice-info h2 { font-size: 24px; font-weight: 700; color: #4f46e5; margin-bottom: 8px; }
+    .invoice-info h2 { font-size: 24px; font-weight: 700; color: #2563eb; margin-bottom: 8px; }
     .invoice-info p { font-size: 11px; color: #666; }
     .invoice-info .invoice-number { font-size: 14px; font-weight: 600; color: #111; }
     .parties { display: flex; gap: 40px; margin-bottom: 30px; }
@@ -146,8 +146,8 @@ function generateInvoiceHTML(invoice: InvoicePrintProps["invoice"], org: Invoice
     .notes h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 8px; }
     .footer { text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; }
     .footer p { font-size: 10px; color: #999; }
-    .fel-info { background: #eef2ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
-    .fel-info p { font-size: 10px; color: #4f46e5; }
+    .fel-info { background: #eff6ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+    .fel-info p { font-size: 10px; color: #2563eb; }
     @media print {
       body { padding: 0; }
       @page { margin: 15mm; }

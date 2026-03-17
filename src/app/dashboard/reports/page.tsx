@@ -49,7 +49,7 @@ export default async function ReportsPage() {
       description: "Sumas y saldos de todas las cuentas contables",
       icon: BarChart3,
       href: "/dashboard/reports/balance-comprobacion",
-      color: "bg-purple-50 text-purple-600",
+      color: "bg-slate-50 text-slate-600",
     },
     {
       title: "Reporte de IVA",
@@ -63,7 +63,7 @@ export default async function ReportsPage() {
       description: "Detalle de movimientos por cuenta contable",
       icon: FileText,
       href: "/dashboard/reports/libro-mayor",
-      color: "bg-indigo-50 text-indigo-600",
+      color: "bg-blue-50 text-blue-600",
     },
     {
       title: "Reporte de Planilla",

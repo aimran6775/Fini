@@ -104,7 +104,7 @@ export function ReportsBarChart({ data }: ReportsBarChartProps) {
         />
         <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} name="revenue" />
         <Bar dataKey="expenses" fill="#f43f5e" radius={[4, 4, 0, 0]} name="expenses" />
-        <Bar dataKey="netIncome" fill="#6366f1" radius={[4, 4, 0, 0]} name="netIncome" />
+        <Bar dataKey="netIncome" fill="#2563eb" radius={[4, 4, 0, 0]} name="netIncome" />
       </BarChart>
     </ResponsiveContainer>
   );

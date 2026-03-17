@@ -34,7 +34,7 @@ export default function Image() {
               width: "72px",
               height: "72px",
               borderRadius: "18px",
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              background: "linear-gradient(135deg, #1d4ed8, #2563eb)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

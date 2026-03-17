@@ -20,7 +20,7 @@ function DashboardMockup() {
   const kpis = [
     { label: "Ingresos", value: "Q 148,320", trend: "+12%", up: true, color: "text-emerald-400" },
     { label: "Gastos", value: "Q 62,480", trend: "-3%", up: false, color: "text-rose-400" },
-    { label: "Utilidad Neta", value: "Q 85,840", trend: null, up: true, color: "text-violet-400" },
+    { label: "Utilidad Neta", value: "Q 85,840", trend: null, up: true, color: "text-blue-400" },
     { label: "Saldo Bancario", value: "Q 214,600", trend: null, up: true, color: "text-blue-400" },
   ];
 
@@ -45,7 +45,7 @@ function DashboardMockup() {
       {/* Sidebar */}
       <div className="hidden sm:flex w-44 flex-col border-r border-white/5 bg-[#0a0a0a] py-3 px-2 gap-0.5">
         <div className="flex items-center gap-2 px-2 mb-4">
-          <div className="h-6 w-6 rounded-md bg-indigo-600 flex items-center justify-center text-[10px] font-black">F</div>
+          <div className="h-6 w-6 rounded-md bg-blue-600 flex items-center justify-center text-[10px] font-black">F</div>
           <span className="text-xs font-semibold text-white/90">FiniTax</span>
         </div>
         {[
@@ -79,7 +79,7 @@ function DashboardMockup() {
             <p className="text-sm font-semibold text-white/90">Carlos</p>
           </div>
           <div className="flex items-center gap-1">
-            <div className="h-6 px-2 rounded-md bg-indigo-600/20 text-indigo-400 text-[9px] font-medium flex items-center">+ Nueva Factura</div>
+            <div className="h-6 px-2 rounded-md bg-blue-600/20 text-blue-400 text-[9px] font-medium flex items-center">+ Nueva Factura</div>
           </div>
         </div>
 
@@ -361,7 +361,7 @@ export default function LandingPage() {
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 animate-fade-in-up">
               {t.hero.title1}{" "}
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-slate-300 bg-clip-text text-transparent">
                 {t.hero.titleHighlight}
               </span>
               <br />
@@ -375,7 +375,7 @@ export default function LandingPage() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up delay-200">
-              <Link href="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4 text-base font-semibold text-white shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/30 transition-all hover:scale-[1.02]">
+              <Link href="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 px-8 py-4 text-base font-semibold text-white shadow-xl shadow-blue-600/25 hover:shadow-2xl hover:shadow-blue-600/30 transition-all hover:scale-[1.02]">
                 {t.hero.cta}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
@@ -404,7 +404,7 @@ export default function LandingPage() {
           ═══════════════════════════════════════════════════════════ */}
       <section className="relative -mt-20 z-10 mx-auto max-w-6xl px-4 sm:px-6 pb-24">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl p-1.5 shadow-2xl">
-          <div className="rounded-xl bg-[#0c0c1a] overflow-hidden">
+          <div className="rounded-xl bg-[#0c1222] overflow-hidden">
             {/* Browser chrome header */}
             <div className="flex items-center gap-2 p-4 pb-0 sm:p-6 sm:pb-0">
               <div className="flex gap-1.5">
@@ -428,12 +428,12 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════════
           STATS BAR
           ═══════════════════════════════════════════════════════════ */}
-      <section className="border-y border-white/5 py-12 sm:py-16 bg-gradient-to-r from-indigo-950/30 via-purple-950/30 to-indigo-950/30">
+      <section className="border-y border-white/5 py-12 sm:py-16 bg-gradient-to-r from-blue-950/30 via-slate-900/30 to-blue-950/30">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {stats.map((stat, i) => (
               <div key={i}>
-                <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                   <CountUp target={stat.value} suffix={stat.suffix} decimals={stat.suffix === "%" ? 1 : 0} />
                 </p>
                 <p className="mt-1 text-sm text-white/40">{stat.label}</p>
@@ -447,14 +447,14 @@ export default function LandingPage() {
           FEATURES
           ═══════════════════════════════════════════════════════════ */}
       <section id="features" className="relative py-24 sm:py-32">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-950/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <p className="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-3">{t.features.title}</p>
+            <p className="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-3">{t.features.title}</p>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
               {t.features.heading}{" "}
-              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{t.features.headingHighlight}</span>
+              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{t.features.headingHighlight}</span>
             </h2>
             <p className="mt-4 text-white/50 text-lg">
               {t.features.subtitle}
@@ -463,8 +463,8 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {featureData.map((f, i) => (
-              <div key={i} className="group rounded-2xl border border-white/5 bg-white/[0.02] p-6 sm:p-7 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-300">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
+              <div key={i} className="group rounded-2xl border border-white/5 bg-white/[0.02] p-6 sm:p-7 hover:border-blue-500/30 hover:bg-white/[0.04] transition-all duration-300">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
                   <f.icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
@@ -520,7 +520,7 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════════
           HOW IT WORKS
           ═══════════════════════════════════════════════════════════ */}
-      <section id="how" className="py-24 sm:py-32 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
+      <section id="how" className="py-24 sm:py-32 bg-gradient-to-b from-transparent via-slate-900/10 to-transparent">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <p className="text-sm font-semibold text-amber-400 uppercase tracking-widest mb-3">{t.howItWorks.title}</p>
@@ -533,8 +533,8 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-3 gap-8 sm:gap-6">
             {steps.map((step, i) => (
               <div key={i} className="relative text-center">
-                <div className="mb-6 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{step.num}</span>
+                <div className="mb-6 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{step.num}</span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
                 <p className="text-sm text-white/45">{step.desc}</p>
@@ -554,8 +554,8 @@ export default function LandingPage() {
           ═══════════════════════════════════════════════════════════ */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
         {/* Background effects */}
-        <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/50 to-transparent pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[128px] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-950/50 to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[128px] pointer-events-none" />
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 mb-8 backdrop-blur-sm">
@@ -565,7 +565,7 @@ export default function LandingPage() {
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
             {t.cta.heading}{" "}
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-slate-300 bg-clip-text text-transparent">
               {t.cta.headingHighlight}
             </span>
           </h2>

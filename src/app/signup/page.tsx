@@ -64,7 +64,7 @@ export default function SignupPage() {
   // Prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050514]">
+      <div className="min-h-screen flex items-center justify-center bg-[#020617]">
         <div className="h-8 w-8 rounded-full border-2 border-white/30 border-t-white animate-spin" />
       </div>
     );
@@ -72,7 +72,7 @@ export default function SignupPage() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050514] relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] relative overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-[120px] animate-blob" />
         
         {/* Language toggle */}
@@ -96,7 +96,7 @@ export default function SignupPage() {
             <p className="text-sm text-white/45 mb-6">
               {t.auth.emailSent} <span className="text-white/70">{email}</span>
             </p>
-            <Link href="/login" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
+            <Link href="/login" className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
               {t.auth.backToLogin}
             </Link>
           </div>
@@ -106,10 +106,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050514] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] relative overflow-hidden">
       {/* Ambient glow effects */}
-      <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/10 blur-[120px] animate-blob" />
-      <div className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-600/10 blur-[100px] animate-blob delay-2000" />
+      <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-slate-600/10 blur-[120px] animate-blob" />
+      <div className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full bg-blue-600/10 blur-[100px] animate-blob delay-2000" />
 
       {/* Language toggle */}
       <div className="absolute top-4 right-4 z-20">
@@ -157,7 +157,7 @@ export default function SignupPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
+                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
                   placeholder="Juan García López"
                 />
               </div>
@@ -175,7 +175,7 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
+                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
                   placeholder="correo@empresa.com"
                 />
               </div>
@@ -194,7 +194,7 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-12 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all"
+                  className="w-full rounded-xl bg-white/[0.06] border border-white/10 pl-10 pr-12 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
                   placeholder={t.auth.minChars}
                 />
                 <button
@@ -211,7 +211,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl gradient-premium py-3.5 text-sm font-semibold text-white hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/20"
+              className="w-full flex items-center justify-center gap-2 rounded-xl gradient-premium py-3.5 text-sm font-semibold text-white hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-blue-600/20"
             >
               {loading ? (
                 <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -227,7 +227,7 @@ export default function SignupPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-white/35">
               {t.auth.hasAccount}{" "}
-              <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+              <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
                 {t.auth.loginLink}
               </Link>
             </p>

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /* ─── FiniTax Logomark ─────────────────────────────────────────────────
-   An indigo-to-violet rounded-square with a white "F" letterform
+   A blue rounded-square with a white "F" letterform
    and a jade (Guatemala) accent dot.
 ─────────────────────────────────────────────────────────────────────── */
 interface MarkProps {
