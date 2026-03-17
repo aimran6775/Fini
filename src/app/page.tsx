@@ -210,18 +210,28 @@ export default function LandingPage() {
   }, []);
 
   // Autoplay retry — some mobile browsers block autoplay even when muted.
-  // Try once on mount; if that fails, retry on the first user interaction.
+  // Try on mount, on interval, and on first user interaction.
   useEffect(() => {
-    const videos = [heroBgRef.current].filter(Boolean) as HTMLVideoElement[];
+    const v = heroBgRef.current;
+    if (!v) return;
 
     const tryPlay = () => {
-      videos.forEach((v) => {
-        if (v.paused) v.play().catch(() => {});
-      });
+      if (v.paused) {
+        v.muted = true; // ensure muted (some browsers reset this)
+        v.play().catch(() => {});
+      }
     };
 
-    // Initial attempt (handles most browsers)
+    // Initial attempt
     tryPlay();
+
+    // Retry every 500ms for the first 5 seconds (handles late-loading)
+    let attempts = 0;
+    const interval = setInterval(() => {
+      tryPlay();
+      attempts++;
+      if (attempts >= 10 || !v.paused) clearInterval(interval);
+    }, 500);
 
     // Fallback: play on first user touch/click (iOS low-power mode, etc.)
     const onInteraction = () => {
@@ -233,6 +243,7 @@ export default function LandingPage() {
     window.addEventListener("click", onInteraction, { once: true });
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener("touchstart", onInteraction);
       window.removeEventListener("click", onInteraction);
     };
@@ -344,6 +355,14 @@ export default function LandingPage() {
           preload="auto"
           poster="/images/hero-poster.jpg"
           className="absolute inset-0 h-full w-full object-cover"
+          onLoadedData={(e) => {
+            const v = e.currentTarget;
+            if (v.paused) v.play().catch(() => {});
+          }}
+          onCanPlayThrough={(e) => {
+            const v = e.currentTarget;
+            if (v.paused) v.play().catch(() => {});
+          }}
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
