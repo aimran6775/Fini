@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://fini-tax-production.up.railway.app";
+  const baseUrl = "https://finitaxgt.com";
 
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },

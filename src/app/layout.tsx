@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://fini-tax-production.up.railway.app"),
+  metadataBase: new URL("https://finitaxgt.com"),
   title: {
     default: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
     template: "%s | Fini Tax GT",

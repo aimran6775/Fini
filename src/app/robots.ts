@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard/", "/api/", "/auth/"],
       },
     ],
-    sitemap: "https://fini-tax-production.up.railway.app/sitemap.xml",
+    sitemap: "https://finitaxgt.com/sitemap.xml",
   };
 }
