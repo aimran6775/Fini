@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { adminDeleteRow, adminUpdateRow, adminInsertRow } from "@/app/actions/admin";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   Trash2, Pencil, Plus, X, Check, ChevronLeft, ChevronRight,
   Search, AlertCircle, Loader2,
@@ -385,9 +386,4 @@ export function AdminDataTable({
       </div>
     </div>
   );
-}
-
-// Utility for cn in this file
-function cn(...classes: (string | undefined | false)[]) {
-  return classes.filter(Boolean).join(" ");
 }

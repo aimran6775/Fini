@@ -3,9 +3,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireOrgMembership, verifyEntityOwnership } from "@/lib/auth-guard";
 
 export async function getBankAccounts(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("bank_accounts")
     .select("*")
@@ -17,6 +22,10 @@ export async function getBankAccounts(orgId: string) {
 
 export async function getBankAccount(accountId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "bank_accounts", accountId);
+
   const { data, error } = await supabase
     .from("bank_accounts")
     .select("*")
@@ -219,6 +228,10 @@ export async function completeReconciliation(reconciliationId: string, orgId: st
 
 export async function getContacts(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
@@ -254,6 +267,10 @@ export async function createContact(formData: FormData) {
 
 export async function getInventoryItems(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("inventory_items")
     .select("*")

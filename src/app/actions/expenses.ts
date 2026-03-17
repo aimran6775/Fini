@@ -4,9 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAuditEvent } from "@/app/actions/audit";
+import { requireOrgMembership, verifyEntityOwnership } from "@/lib/auth-guard";
 
 export async function getExpenses(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("expenses")
     .select(`*, account:chart_of_accounts(id, account_code, account_name), contact:contacts(id, name)`)
@@ -61,6 +66,7 @@ export async function approveExpense(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "expenses", id);
 
   const { error } = await supabase
     .from("expenses")
@@ -90,6 +96,7 @@ export async function deleteExpense(id: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "expenses", id);
 
   const { error } = await supabase.from("expenses").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -99,6 +106,10 @@ export async function deleteExpense(id: string) {
 
 export async function getExpense(id: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "expenses", id);
+
   const { data, error } = await supabase
     .from("expenses")
     .select(`*, account:chart_of_accounts(id, account_code, account_name), contact:contacts(id, name)`)

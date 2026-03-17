@@ -3,24 +3,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-// Guatemala payroll constants
-const IGSS_EMPLOYEE_RATE = 0.0483; // 4.83%
-const IGSS_EMPLOYER_RATE = 0.1067; // 10.67%
-const IRTRA_RATE = 0.01; // 1%
-const INTECAP_RATE = 0.01; // 1%
-const ISR_EXEMPT_ANNUAL = 48000; // Q48,000 annual exemption
+import { TAX_RATES } from "@/lib/tax-utils";
+import { requireOrgMembership, verifyEntityOwnership } from "@/lib/auth-guard";
 
 // ISR employee brackets (monthly)
 function calculateMonthlyISR(monthlyGross: number): number {
   const annualGross = monthlyGross * 12;
-  const taxableIncome = Math.max(0, annualGross - ISR_EXEMPT_ANNUAL);
+  const taxableIncome = Math.max(0, annualGross - TAX_RATES.ISR_EMPLOYEE_DEDUCTION);
   let annualISR = 0;
 
-  if (taxableIncome <= 300000) {
-    annualISR = taxableIncome * 0.05;
+  if (taxableIncome <= TAX_RATES.ISR_EMPLOYEE_THRESHOLD) {
+    annualISR = taxableIncome * TAX_RATES.ISR_EMPLOYEE_LOW;
   } else {
-    annualISR = 300000 * 0.05 + (taxableIncome - 300000) * 0.07;
+    annualISR = TAX_RATES.ISR_EMPLOYEE_THRESHOLD * TAX_RATES.ISR_EMPLOYEE_LOW + (taxableIncome - TAX_RATES.ISR_EMPLOYEE_THRESHOLD) * TAX_RATES.ISR_EMPLOYEE_HIGH;
   }
 
   return annualISR / 12;
@@ -28,6 +23,10 @@ function calculateMonthlyISR(monthlyGross: number): number {
 
 export async function getEmployees(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("employees")
     .select("*")
@@ -72,6 +71,10 @@ export async function createEmployee(formData: FormData) {
 
 export async function getPayrollRuns(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("payroll_runs")
     .select(`*, details:payroll_details(*, employee:employees(id, first_name, last_name, dpi_number))`)
@@ -116,11 +119,11 @@ export async function runPayroll(formData: FormData) {
 
   const details = employees.map((emp: any) => {
     const baseSalary = Number(emp.base_salary);
-    const igssEmployee = Math.round(baseSalary * IGSS_EMPLOYEE_RATE * 100) / 100;
+    const igssEmployee = Math.round(baseSalary * TAX_RATES.IGSS_EMPLOYEE * 100) / 100;
     const isrWithholding = Math.round(calculateMonthlyISR(baseSalary) * 100) / 100;
-    const igssEmployer = Math.round(baseSalary * IGSS_EMPLOYER_RATE * 100) / 100;
-    const irtra = Math.round(baseSalary * IRTRA_RATE * 100) / 100;
-    const intecap = Math.round(baseSalary * INTECAP_RATE * 100) / 100;
+    const igssEmployer = Math.round(baseSalary * TAX_RATES.IGSS_EMPLOYER * 100) / 100;
+    const irtra = Math.round(baseSalary * TAX_RATES.IRTRA * 100) / 100;
+    const intecap = Math.round(baseSalary * TAX_RATES.INTECAP * 100) / 100;
 
     // Accruals (monthly provision)
     const aguinaldoAccrual = Math.round(baseSalary / 12 * 100) / 100;
@@ -211,6 +214,7 @@ export async function approvePayroll(payrollRunId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "payroll_runs", payrollRunId);
 
   const { error } = await supabase
     .from("payroll_runs")
@@ -224,6 +228,10 @@ export async function approvePayroll(payrollRunId: string) {
 
 export async function getEmployee(id: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "employees", id);
+
   const { data, error } = await supabase
     .from("employees")
     .select("*")
@@ -237,6 +245,7 @@ export async function updateEmployee(id: string, formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "employees", id);
 
   const { error } = await supabase
     .from("employees")
@@ -268,6 +277,7 @@ export async function terminateEmployee(id: string, terminationDate: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "employees", id);
 
   const { error } = await supabase
     .from("employees")

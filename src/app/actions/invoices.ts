@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { logAuditEvent } from "@/app/actions/audit";
 import { PAYMENT_METHOD_LABELS } from "@/lib/tax-utils";
 import type { PaymentMethod } from "@/lib/types/database";
+import { requireOrgMembership, verifyEntityOwnership } from "@/lib/auth-guard";
 
 export async function getInvoices(orgId: string, filters?: {
   status?: string;
@@ -15,6 +16,10 @@ export async function getInvoices(orgId: string, filters?: {
   dateTo?: string;
 }) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   let query = supabase
     .from("fel_invoices")
     .select(`*, contact:contacts(id, name, nit_number), items:fel_invoice_items(*)`)
@@ -37,6 +42,10 @@ export async function getInvoices(orgId: string, filters?: {
 
 export async function getInvoice(id: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "fel_invoices", id);
+
   const { data, error } = await supabase
     .from("fel_invoices")
     .select(`*, contact:contacts(id, name, nit_number, email, phone, address), items:fel_invoice_items(*)`)
@@ -172,6 +181,7 @@ export async function certifyInvoice(invoiceId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "fel_invoices", invoiceId);
 
   // In production, this would call the FEL certificador API (INFILE, DIGIFACT, etc.)
   // For now, we simulate certification
@@ -212,6 +222,7 @@ export async function voidInvoice(invoiceId: string, reason: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "fel_invoices", invoiceId);
 
   // In production, this would call the FEL anulación API
   const { error } = await supabase
@@ -245,6 +256,7 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "fel_invoices", invoiceId);
 
   // Only DRAFT invoices can be edited
   const { data: existing } = await supabase
@@ -567,7 +579,10 @@ export async function deletePayment(paymentId: string, orgId: string) {
 
 export async function getInvoiceWithPayments(invoiceId: string) {
   const supabase = await createClient();
-  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await verifyEntityOwnership(user.id, "fel_invoices", invoiceId);
+
   const { data: invoice, error: invoiceError } = await supabase
     .from("fel_invoices")
     .select(`*, contact:contacts(id, name, nit_number, email, phone, address), items:fel_invoice_items(*)`)

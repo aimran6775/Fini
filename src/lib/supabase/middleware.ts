@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_EMAIL } from "@/lib/supabase/admin";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -47,7 +48,7 @@ export async function updateSession(request: NextRequest) {
       url.pathname = "/admin/login";
       return NextResponse.redirect(url);
     }
-    if (user.email !== "admin@finitax.com") {
+    if (user.email !== ADMIN_EMAIL) {
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";
       return NextResponse.redirect(url);
@@ -63,7 +64,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect authenticated admin to admin panel
-  if (user && user.email === "admin@finitax.com" && pathname === "/admin/login") {
+  if (user && user.email === ADMIN_EMAIL && pathname === "/admin/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
     return NextResponse.redirect(url);

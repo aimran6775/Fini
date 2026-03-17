@@ -16,6 +16,8 @@ export default async function NotificationsPage() {
     .limit(1)
     .single();
 
+  if (!membership) redirect("/onboarding");
+
   const { data: notifications } = await supabase
     .from("notifications")
     .select("*")

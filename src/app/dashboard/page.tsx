@@ -31,11 +31,11 @@ export default async function DashboardPage({
     .limit(1)
     .single();
 
-  if (!membership) return null;
+  if (!membership) redirect("/onboarding");
 
   const orgId = membership.organization_id;
   const org = (membership as any).organization;
-  if (!org) return null;
+  if (!org) redirect("/onboarding");
 
   // Determine date range based on period selector
   const { start: periodStart, end: periodEnd } = getPeriodRange(params.period || null);

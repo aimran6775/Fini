@@ -3,9 +3,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireOrgMembership } from "@/lib/auth-guard";
 
 export async function getChartOfAccounts(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("chart_of_accounts")
     .select("*")
@@ -39,6 +44,10 @@ export async function createAccount(formData: FormData) {
 
 export async function getJournalEntries(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("journal_entries")
     .select(`*, lines:journal_entry_lines(*, account:chart_of_accounts(id, account_code, account_name))`)

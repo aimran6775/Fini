@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import { MONTH_NAMES } from "@/lib/tax-utils";
+import { requireOrgMembership } from "@/lib/auth-guard";
 
 export interface AccountBalance {
   account_id: string;
@@ -169,6 +171,11 @@ async function getAccountBalancesForPeriod(
 }
 
 export async function getBalanceGeneral(orgId: string, asOfDate?: string): Promise<BalanceGeneralData> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const fecha = asOfDate || new Date().toISOString().split("T")[0];
   const balances = await getAccountBalances(orgId, fecha);
 
@@ -196,6 +203,11 @@ export async function getEstadoResultados(
   startDate: string,
   endDate: string
 ): Promise<EstadoResultadosData> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const balances = await getAccountBalancesForPeriod(orgId, startDate, endDate);
 
   const ingresos = balances.filter((b) => b.account_type === "REVENUE" && b.balance !== 0);
@@ -221,6 +233,11 @@ export async function getEstadoResultados(
 }
 
 export async function getTrialBalance(orgId: string, asOfDate?: string): Promise<TrialBalanceRow[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const balances = await getAccountBalances(orgId, asOfDate);
 
   return balances
@@ -239,6 +256,9 @@ export async function getTrialBalance(orgId: string, asOfDate?: string): Promise
 // Quick summary data using invoices and expenses (for when no journal entries exist)
 export async function getQuickFinancials(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
 
   const now = new Date();
   const yearStart = `${now.getFullYear()}-01-01`;
@@ -316,6 +336,10 @@ const SHORT_MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "S
 
 export async function getDashboardTrends(orgId: string): Promise<DashboardTrends> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const now = new Date();
 
   // Build date ranges for last 6 months
@@ -425,6 +449,9 @@ export async function getLibroMayor(
   accountId?: string
 ): Promise<LedgerAccount[]> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
 
   // Get accounts
   let accountsQuery = supabase
@@ -570,6 +597,9 @@ export interface PayrollReportRow {
 
 export async function getPayrollReport(orgId: string, month?: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
 
   const { data: employees } = await supabase
     .from("employees")
