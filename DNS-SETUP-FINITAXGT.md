@@ -4,11 +4,18 @@
 
 Go to **Squarespace → Domains → finitaxgt.com → DNS Settings**
 
-Add these **4 records**:
+### Current Status
+
+| # | Record | Status |
+|---|--------|--------|
+| 1 | Root CNAME (`@`) | ❌ **MISSING** |
+| 2 | TXT verification (root) | ❌ **MISSING** |
+| 3 | www CNAME | ✅ Done |
+| 4 | TXT verification (www) | ❌ **MISSING** |
 
 ---
 
-### Record 1 — Root Domain (finitaxgt.com)
+### ❌ Record 1 — Root Domain (finitaxgt.com)
 
 | Field | Value |
 |-------|-------|
@@ -16,11 +23,11 @@ Add these **4 records**:
 | **Host** | `@` |
 | **Value** | `ebahq5qz.up.railway.app` |
 
-> ⚠️ If Squarespace doesn't allow CNAME on `@`, use **ALIAS** or **ANAME** if available. Some registrars require an A record for root domains — in that case, use Railway's dashboard to find the IP.
+> ⚠️ Squarespace may not allow CNAME on `@`. If so, try **ALIAS** or **ANAME** type instead. If none of those work, you may need to use a **Forwarding** rule from `@` → `www.finitaxgt.com` as a workaround.
 
 ---
 
-### Record 2 — Railway Verification (root)
+### ❌ Record 2 — Railway Verification (root)
 
 | Field | Value |
 |-------|-------|
@@ -30,7 +37,7 @@ Add these **4 records**:
 
 ---
 
-### Record 3 — www Subdomain (www.finitaxgt.com)
+### ✅ Record 3 — www Subdomain (www.finitaxgt.com) — ALREADY DONE
 
 | Field | Value |
 |-------|-------|
@@ -40,7 +47,7 @@ Add these **4 records**:
 
 ---
 
-### Record 4 — Railway Verification (www)
+### ❌ Record 4 — Railway Verification (www)
 
 | Field | Value |
 |-------|-------|
@@ -50,16 +57,14 @@ Add these **4 records**:
 
 ---
 
-## Step 2: Add Redirect URLs in Supabase
+## Step 2: Add Redirect URLs in Supabase — ✅ DONE
 
-Go to: https://supabase.com/dashboard/project/njbknxmdhmoreknnoylp/auth/url-configuration
+Already configured via Supabase API:
 
-Under **Redirect URLs**, click **Add URL** and add both:
-
-```
-https://finitaxgt.com/auth/callback
-https://www.finitaxgt.com/auth/callback
-```
+- `https://finitaxgt.com/auth/callback`
+- `https://www.finitaxgt.com/auth/callback`
+- `https://fini-tax-production.up.railway.app/auth/callback`
+- `http://localhost:3000/auth/callback`
 
 ---
 
@@ -67,7 +72,7 @@ https://www.finitaxgt.com/auth/callback
 
 - **DNS propagation:** 5 minutes to 72 hours (usually under 30 min)
 - **SSL certificate:** Railway auto-provisions once DNS verifies
-- After both complete, **https://finitaxgt.com** will be live 🚀
+- After all records are added, **https://finitaxgt.com** will be live 🚀
 
 ---
 
@@ -76,8 +81,15 @@ https://www.finitaxgt.com/auth/callback
 Once DNS propagates, test with:
 
 ```bash
+# Check DNS resolution
+dig finitaxgt.com CNAME +short
+dig _railway-verify.finitaxgt.com TXT +short
+
+# Check HTTP response
 curl -s -o /dev/null -w "%{http_code}" https://finitaxgt.com
 curl -s -o /dev/null -w "%{http_code}" https://www.finitaxgt.com
 ```
+
+Both should return `200`.
 
 Both should return `200`.
