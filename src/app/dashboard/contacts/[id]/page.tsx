@@ -96,48 +96,48 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-              <FileText className="h-5 w-5 text-blue-600" />
+      <div className="grid gap-3 md:grid-cols-4">
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl kpi-blue">
+              <FileText className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Facturas</p>
-              <p className="text-2xl font-bold">{invoices?.length || 0}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Facturas</p>
+              <p className="text-2xl font-bold tabular-nums">{invoices?.length || 0}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-              <CreditCard className="h-5 w-5 text-green-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl kpi-emerald">
+              <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Facturado</p>
-              <p className="text-2xl font-bold">{formatCurrency(invoiceTotal)}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Total Facturado</p>
+              <p className="text-2xl font-bold tabular-nums">{formatCurrency(invoiceTotal)}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50">
-              <Receipt className="h-5 w-5 text-orange-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl kpi-amber">
+              <Receipt className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Compras</p>
-              <p className="text-2xl font-bold">{expenses?.length || 0}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Compras</p>
+              <p className="text-2xl font-bold tabular-nums">{expenses?.length || 0}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-              <CreditCard className="h-5 w-5 text-blue-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl kpi-cyan">
+              <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Comprado</p>
-              <p className="text-2xl font-bold">{formatCurrency(expenseTotal)}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Total Comprado</p>
+              <p className="text-2xl font-bold tabular-nums">{formatCurrency(expenseTotal)}</p>
             </div>
           </CardContent>
         </Card>

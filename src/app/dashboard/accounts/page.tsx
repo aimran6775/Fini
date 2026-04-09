@@ -5,6 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { BookOpen } from "lucide-react";
 import { CreateAccountDialog } from "@/components/dashboard/create-account-dialog";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Plan de Cuentas — FiniTax GT",
+  description: "Nomenclatura contable guatemalteca",
+};
 
 export default async function AccountsPage() {
   const supabase = await createClient();
@@ -45,11 +51,11 @@ export default async function AccountsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Plan de Cuentas</h1>
-          <p className="text-muted-foreground">Nomenclatura contable guatemalteca</p>
+        <div className="page-header">
+          <h1>Plan de Cuentas</h1>
+          <p>Nomenclatura contable guatemalteca</p>
         </div>
         <CreateAccountDialog
           orgId={membership.organization_id}

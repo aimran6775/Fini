@@ -14,6 +14,7 @@ import Link from "next/link";
 import { getBankAccount, getBankTransactions, getReconciliations } from "@/app/actions/banking";
 import { AddTransactionForm } from "@/components/dashboard/add-transaction-form";
 import { ReconciliationForm } from "@/components/dashboard/reconciliation-form";
+import { BankExportButton } from "@/components/dashboard/bank-export";
 
 const CATEGORY_LABELS: Record<string, string> = {
   DEPOSIT: "Depósito",
@@ -88,6 +89,12 @@ export default async function BankAccountPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <BankExportButton
+            accountId={id}
+            bankName={account.bank_name}
+            accountName={account.account_name}
+            transactions={transactions}
+          />
           <Badge variant={account.is_active ? "success" : "secondary"}>
             {account.is_active ? "Activa" : "Inactiva"}
           </Badge>

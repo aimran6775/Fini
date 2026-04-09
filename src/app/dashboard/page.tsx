@@ -56,21 +56,31 @@ export default async function DashboardPage({
     expenseQuery = expenseQuery.gte("expense_date", periodStart).lte("expense_date", periodEnd);
   }
 
-  const [invoicesRes, expensesRes, employeesRes, bankRes, trends] = await Promise.all([
-    invoiceQuery,
-    expenseQuery,
-    supabase
-      .from("employees")
-      .select("id", { count: "exact" })
-      .eq("organization_id", orgId)
-      .eq("status", "ACTIVE"),
-    supabase
-      .from("bank_accounts")
-      .select("current_balance")
-      .eq("organization_id", orgId)
-      .eq("is_active", true),
-    getDashboardTrends(orgId),
-  ]);
+  let invoicesRes, expensesRes, employeesRes, bankRes, trends;
+  try {
+    [invoicesRes, expensesRes, employeesRes, bankRes, trends] = await Promise.all([
+      invoiceQuery,
+      expenseQuery,
+      supabase
+        .from("employees")
+        .select("id", { count: "exact" })
+        .eq("organization_id", orgId)
+        .eq("status", "ACTIVE"),
+      supabase
+        .from("bank_accounts")
+        .select("current_balance")
+        .eq("organization_id", orgId)
+        .eq("is_active", true),
+      getDashboardTrends(orgId),
+    ]);
+  } catch {
+    // Fallback: empty data on query failure
+    invoicesRes = { data: [], count: 0 };
+    expensesRes = { data: [], count: 0 };
+    employeesRes = { data: [], count: 0 };
+    bankRes = { data: [] };
+    trends = { currentMonthRevenue: 0, previousMonthRevenue: 0, currentMonthExpenses: 0, previousMonthExpenses: 0, monthly: [], expensesByCategory: [] };
+  }
 
   const totalInvoiced = invoicesRes.data
     ?.filter((i: any) => i.status === "CERTIFIED")
@@ -119,25 +129,25 @@ export default async function DashboardPage({
   });
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Setup Reminder Banner */}
       {needsSetup && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4">
+        <div className="rounded-xl border border-amber-200/60 bg-gradient-to-r from-amber-50 to-orange-50/50 dark:from-amber-950/40 dark:to-orange-950/20 dark:border-amber-800/40 p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/60">
                 <Settings className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="font-medium text-amber-900 dark:text-amber-200">Completa tu información fiscal</p>
-                <p className="text-sm text-amber-700 dark:text-amber-400">
-                  Configura tu NIT y datos de empresa para poder emitir facturas FEL.
+                <p className="font-semibold text-sm text-amber-900 dark:text-amber-200">Completa tu información fiscal</p>
+                <p className="text-[13px] text-amber-700/80 dark:text-amber-400/80">
+                  Configura tu NIT y datos de empresa para emitir facturas FEL.
                 </p>
               </div>
             </div>
             <Link
               href="/dashboard/settings"
-              className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors whitespace-nowrap"
+              className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-all duration-150 whitespace-nowrap shadow-sm active:scale-[0.98]"
             >
               Configurar <ChevronRight className="h-4 w-4" />
             </Link>
@@ -147,25 +157,25 @@ export default async function DashboardPage({
 
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{greeting}</p>
-          <div className="flex items-center gap-2 mt-0.5">
+        <div className="space-y-1">
+          <p className="text-[13px] text-muted-foreground">{greeting}</p>
+          <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight">{firstName}</h1>
-            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary">
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary ring-1 ring-primary/10">
               {userRole === "ADMIN" ? "Admin" : userRole === "ACCOUNTANT" ? "Contador" : "Empleado"}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[13px] text-muted-foreground">
             {org.name} · NIT {org.nit_number}
           </p>
-          <p className="text-sm text-muted-foreground/80 mt-1.5">{subtitle}</p>
+          <p className="text-[13px] text-muted-foreground/70">{subtitle}</p>
 
           {/* Insight chips */}
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {draftCount > 0 && (
               <Link
                 href="/dashboard/invoices"
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400 hover:opacity-80 transition-opacity"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 hover:opacity-80 transition-opacity"
               >
                 <AlertCircle className="h-3 w-3" />
                 {draftCount} borrador{draftCount > 1 ? "es" : ""} por certificar
@@ -174,14 +184,14 @@ export default async function DashboardPage({
             {obligations[0]?.daysLeft <= 7 && (
               <Link
                 href="/dashboard/tax"
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400 hover:opacity-80 transition-opacity"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 hover:opacity-80 transition-opacity"
               >
                 <CalendarClock className="h-3 w-3" />
                 IVA vence en {obligations[0].daysLeft} días
               </Link>
             )}
             {profitMargin !== null && profitMargin > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
                 <Sparkles className="h-3 w-3" />
                 Margen: {profitMargin}%
               </span>
@@ -193,68 +203,78 @@ export default async function DashboardPage({
             <PeriodSelector />
           </Suspense>
           <Link href="/dashboard/invoices/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors shadow-sm">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-all duration-150 shadow-sm active:scale-[0.98]">
             <Plus className="h-4 w-4" /> Nueva Factura
           </Link>
           <Link href="/dashboard/expenses/new"
-            className="inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium hover:bg-muted transition-colors">
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3.5 py-2 text-sm font-medium hover:bg-muted transition-all duration-150">
             <Plus className="h-4 w-4" /> Nuevo Gasto
           </Link>
         </div>
       </div>
 
       {/* ─── KPI Row ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
           label="Ingresos"
           value={formatCurrency(totalInvoiced)}
           icon={<TrendingUp className="h-4 w-4" />}
-          iconBg="bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+          iconBg="kpi-emerald"
+          accent="bg-gradient-to-r from-emerald-400 to-teal-400"
           trend={revenueTrend}
           trendUp={revenueTrend ? !revenueTrend.startsWith("-") : undefined}
+          delay={0}
         />
         <KpiCard
           label="Gastos"
           value={formatCurrency(totalExpenses)}
           icon={<TrendingDown className="h-4 w-4" />}
-          iconBg="bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
+          iconBg="kpi-rose"
+          accent="bg-gradient-to-r from-rose-400 to-pink-400"
           trend={expenseTrend}
           trendUp={expenseTrend ? expenseTrend.startsWith("-") : undefined}
+          delay={1}
         />
         <KpiCard
           label="Utilidad Neta"
           value={formatCurrency(netIncome)}
           icon={<DollarSign className="h-4 w-4" />}
-          iconBg="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+          iconBg="kpi-blue"
+          accent="bg-gradient-to-r from-blue-400 to-indigo-400"
+          delay={2}
         />
         <KpiCard
           label="Saldo Bancario"
           value={formatCurrency(bankBalance)}
           icon={<Landmark className="h-4 w-4" />}
-          iconBg="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+          iconBg="kpi-cyan"
+          accent="bg-gradient-to-r from-cyan-400 to-sky-400"
+          delay={3}
         />
       </div>
 
       {/* ─── Charts Row ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Revenue vs Expenses — Area Chart */}
-        <div className="lg:col-span-3 rounded-lg border p-4">
+        <div className="lg:col-span-3 rounded-xl border border-border/50 bg-card p-5 shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Ingresos vs Gastos</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Últimos 6 meses</p>
+              <h2 className="section-title">Ingresos vs Gastos</h2>
+              <p className="section-subtitle">Últimos 6 meses</p>
             </div>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted/40">
+              <BarChart3 className="h-4 w-4 text-muted-foreground/60" />
+            </div>
           </div>
           <RevenueExpenseChart data={trends.monthly} />
         </div>
 
         {/* Expense Categories — Donut */}
-        <div className="lg:col-span-2 rounded-lg border p-4">
+        <div className="lg:col-span-2 rounded-xl border border-border/50 bg-card p-5 shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Gastos por Categoría</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Distribución últimos 6 meses</p>
+              <h2 className="section-title">Gastos por Categoría</h2>
+              <p className="section-subtitle">Distribución últimos 6 meses</p>
             </div>
           </div>
           <ExpenseCategoryChart data={trends.expensesByCategory} />
@@ -262,29 +282,30 @@ export default async function DashboardPage({
       </div>
 
       {/* ─── Middle Grid ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Quick Actions */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="text-sm font-semibold text-foreground">Acciones Rápidas</h2>
-          <div className="space-y-1.5">
+          <h2 className="section-title">Acciones Rápidas</h2>
+          <div className="space-y-1">
             {[
-              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950" },
-              { label: "Registrar Gasto", href: "/dashboard/expenses/new", icon: Receipt, color: "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950" },
-              { label: "Partida de Diario", href: "/dashboard/journal/new", icon: FileText, color: "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950" },
-              { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, color: "text-cyan-600 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-950" },
-              { label: "Calcular Impuesto", href: "/dashboard/tax", icon: Calculator, color: "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950" },
-              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "text-slate-600 bg-slate-50 dark:text-slate-400 dark:bg-slate-950" },
+              { label: "Nueva Factura", href: "/dashboard/invoices/new", icon: FileText, color: "kpi-blue" },
+              { label: "Registrar Gasto", href: "/dashboard/expenses/new", icon: Receipt, color: "kpi-amber" },
+              { label: "Importar con IA", href: "/dashboard/imports/ai-workspace", icon: Sparkles, color: "kpi-rose" },
+              { label: "Partida de Diario", href: "/dashboard/journal/new", icon: FileText, color: "kpi-emerald" },
+              { label: "Correr Planilla", href: "/dashboard/payroll/new", icon: Users, color: "kpi-cyan" },
+              { label: "Calcular Impuesto", href: "/dashboard/tax", icon: Calculator, color: "kpi-rose" },
+              { label: "Nuevo Contacto", href: "/dashboard/contacts/new", icon: Users, color: "kpi-slate" },
             ].map((action) => (
               <Link
                 key={action.href}
                 href={action.href}
-                className="flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors group"
+                className="flex items-center gap-3 rounded-xl border border-border/40 px-3 py-2.5 text-sm hover:bg-muted/40 hover:border-border/60 transition-all duration-150 group"
               >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-md ${action.color}`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${action.color} transition-transform duration-200 group-hover:scale-105`}>
                   <action.icon className="h-4 w-4" />
                 </div>
                 <span className="font-medium flex-1">{action.label}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground/20 group-hover:text-muted-foreground/60 group-hover:translate-x-0.5 transition-all duration-150" />
               </Link>
             ))}
           </div>
@@ -293,16 +314,16 @@ export default async function DashboardPage({
         {/* Recent Invoices */}
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Facturas Recientes</h2>
+            <h2 className="section-title">Facturas Recientes</h2>
             <Link href="/dashboard/invoices" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
               Ver todas →
             </Link>
           </div>
-          <div className="rounded-lg border overflow-hidden">
+          <div className="rounded-xl border border-border/50 overflow-hidden shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06]">
             {!recentInvoices || recentInvoices.length === 0 ? (
               <div className="py-12 text-center">
-                <FileText className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">No hay facturas todavía</p>
+                <FileText className="mx-auto h-8 w-8 text-muted-foreground/20 mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">No hay facturas todavía</p>
                 <Link href="/dashboard/invoices/new" className="text-sm text-primary hover:underline mt-1 inline-block">
                   Crear primera factura →
                 </Link>
@@ -310,29 +331,29 @@ export default async function DashboardPage({
             ) : (
               <table className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/30">
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">Cliente</th>
-                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">Fecha</th>
-                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2.5">Monto</th>
-                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2.5">Estado</th>
+                  <tr className="border-b border-border/40 bg-muted/30">
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-4 py-2.5">Cliente</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-4 py-2.5">Fecha</th>
+                    <th className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-4 py-2.5">Monto</th>
+                    <th className="text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-4 py-2.5">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentInvoices.map((inv: any) => (
-                    <tr key={inv.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
+                    <tr key={inv.id} className="border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">
                         <Link href={`/dashboard/invoices/${inv.id}`} className="text-sm font-medium hover:text-primary transition-colors">
                           {inv.client_name || "CF"}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                      <td className="px-4 py-3 text-[13px] text-muted-foreground">
                         {new Date(inv.invoice_date).toLocaleDateString("es-GT", { day: "2-digit", month: "short" })}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-right">{formatCurrency(inv.total)}</td>
+                      <td className="px-4 py-3 text-sm font-semibold tabular-nums text-right">{formatCurrency(inv.total)}</td>
                       <td className="px-4 py-3 text-right">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                          inv.status === "CERTIFIED" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400" :
-                          inv.status === "VOIDED" ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400" :
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          inv.status === "CERTIFIED" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400" :
+                          inv.status === "VOIDED" ? "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400" :
                           "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
                         }`}>
                           {inv.status === "CERTIFIED" ? "Certificada" : inv.status === "VOIDED" ? "Anulada" : "Borrador"}
@@ -348,30 +369,30 @@ export default async function DashboardPage({
       </div>
 
       {/* ─── Bottom Stats Row ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Tax Summary */}
         <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <h2 className="section-title flex items-center gap-2">
             <Calculator className="h-4 w-4 text-muted-foreground" /> Resumen Fiscal
           </h2>
-          <div className="rounded-lg border divide-y">
+          <div className="rounded-xl border border-border/50 divide-y divide-border/40 shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06]">
             <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
+              <div className="flex items-center gap-2.5">
+                <div className="status-dot status-dot-info" />
                 <span className="text-sm">IVA Débito Fiscal</span>
               </div>
-              <span className="text-sm font-semibold">{formatCurrency(totalInvoiced * 0.12 / 1.12)}</span>
+              <span className="text-sm font-semibold tabular-nums">{formatCurrency(totalInvoiced * 0.12 / 1.12)}</span>
             </div>
             <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-500" />
+              <div className="flex items-center gap-2.5">
+                <div className="status-dot status-dot-success" />
                 <span className="text-sm">IVA Crédito Fiscal</span>
               </div>
-              <span className="text-sm font-semibold">{formatCurrency(totalExpenses * 0.12 / 1.12)}</span>
+              <span className="text-sm font-semibold tabular-nums">{formatCurrency(totalExpenses * 0.12 / 1.12)}</span>
             </div>
-            <div className="flex items-center justify-between px-4 py-3 bg-muted/30">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/20">
               <span className="text-sm font-semibold">IVA a Pagar</span>
-              <span className="text-sm font-bold text-primary">
+              <span className="text-sm font-bold text-primary tabular-nums">
                 {formatCurrency(Math.max(0, (totalInvoiced - totalExpenses) * 0.12 / 1.12))}
               </span>
             </div>
@@ -380,17 +401,17 @@ export default async function DashboardPage({
 
         {/* Obligations — dynamic dates */}
         <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <h2 className="section-title flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-muted-foreground" /> Próximas Obligaciones
           </h2>
-          <div className="rounded-lg border divide-y">
+          <div className="rounded-xl border border-border/50 divide-y divide-border/40 shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06]">
             {obligations.map((ob) => (
               <div key={ob.tax} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-sm font-medium">{ob.tax}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{ob.desc}</p>
+                  <p className="text-[12px] text-muted-foreground mt-0.5">{ob.desc}</p>
                 </div>
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${ob.color}`}>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${ob.color}`}>
                   {ob.daysLeft <= 7 ? "¡Urgente!" : ob.daysLeft <= 15 ? "Próximo" : "Pendiente"}
                 </span>
               </div>
@@ -403,18 +424,18 @@ export default async function DashboardPage({
       </div>
 
       {/* ─── Counters ─── */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-lg border px-4 py-3 text-center">
-          <p className="text-2xl font-bold">{invoicesRes.count ?? 0}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Facturas Emitidas</p>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-border/50 bg-card px-4 py-4 text-center shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06] card-hover">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">{invoicesRes.count ?? 0}</p>
+          <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mt-1.5">Facturas Emitidas</p>
         </div>
-        <div className="rounded-lg border px-4 py-3 text-center">
-          <p className="text-2xl font-bold">{expensesRes.count ?? 0}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Gastos Registrados</p>
+        <div className="rounded-xl border border-border/50 bg-card px-4 py-4 text-center shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06] card-hover">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">{expensesRes.count ?? 0}</p>
+          <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mt-1.5">Gastos Registrados</p>
         </div>
-        <div className="rounded-lg border px-4 py-3 text-center">
-          <p className="text-2xl font-bold">{employeesRes.count ?? 0}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Empleados Activos</p>
+        <div className="rounded-xl border border-border/50 bg-card px-4 py-4 text-center shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06] card-hover">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">{employeesRes.count ?? 0}</p>
+          <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mt-1.5">Empleados Activos</p>
         </div>
       </div>
     </div>
@@ -423,29 +444,35 @@ export default async function DashboardPage({
 
 /* ── Helper Components ── */
 
-function KpiCard({ label, value, icon, iconBg, trend, trendUp }: {
+function KpiCard({ label, value, icon, iconBg, accent, trend, trendUp, delay = 0 }: {
   label: string;
   value: string;
   icon: React.ReactNode;
   iconBg: string;
+  accent?: string;
   trend?: string | null;
   trendUp?: boolean;
+  delay?: number;
 }) {
+  const delayClass = delay > 0 ? ` delay-${delay * 75 + 75}` : "";
   return (
-    <div className="rounded-lg border px-4 py-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBg}`}>
-          {icon}
+    <div className={`group relative rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm dark:shadow-none dark:ring-1 dark:ring-white/[0.06] card-hover animate-fade-in-up${delayClass}`}>
+      {accent && <div className={`h-[2px] ${accent}`} />}
+      <div className="px-4 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconBg} transition-transform duration-200 group-hover:scale-105`}>
+            {icon}
+          </div>
+          {trend && (
+            <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${trendUp ? "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/60" : "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950/60"}`}>
+              {trendUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {trend}
+            </span>
+          )}
         </div>
-        {trend && (
-          <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${trendUp ? "text-emerald-600" : "text-rose-600"}`}>
-            {trendUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-            {trend}
-          </span>
-        )}
+        <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">{label}</p>
+        <p className="text-[22px] font-semibold tracking-tight mt-0.5 tabular-nums">{value}</p>
       </div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-xl font-bold tracking-tight mt-0.5">{value}</p>
     </div>
   );
 }
@@ -516,19 +543,19 @@ function getUpcomingObligations() {
       tax: "IVA Mensual",
       desc: `Vence ${ivaDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
       daysLeft: ivaDays,
-      color: ivaDays <= 7 ? "text-red-700 bg-red-50" : ivaDays <= 15 ? "text-amber-700 bg-amber-50" : "text-blue-700 bg-blue-50",
+      color: ivaDays <= 7 ? "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-950/40" : ivaDays <= 15 ? "text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/40" : "text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/40",
     },
     {
       tax: "ISR Trimestral",
       desc: `Vence ${isrDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
       daysLeft: isrDays,
-      color: isrDays <= 7 ? "text-red-700 bg-red-50" : isrDays <= 15 ? "text-amber-700 bg-amber-50" : "text-blue-700 bg-blue-50",
+      color: isrDays <= 7 ? "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-950/40" : isrDays <= 15 ? "text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/40" : "text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/40",
     },
     {
       tax: "ISO Trimestral",
       desc: `Vence ${isoDate.toLocaleDateString("es-GT", { day: "numeric", month: "short", year: "numeric" })}`,
       daysLeft: isoDays,
-      color: isoDays <= 7 ? "text-red-700 bg-red-50" : isoDays <= 15 ? "text-amber-700 bg-amber-50" : "text-blue-700 bg-blue-50",
+      color: isoDays <= 7 ? "text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-950/40" : isoDays <= 15 ? "text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/40" : "text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/40",
     },
   ];
 }

@@ -6,38 +6,61 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { JournalExportButton } from "@/components/dashboard/journal-export";
+import { Pagination } from "@/components/dashboard/pagination";
+import type { Metadata } from "next";
 
-export default async function JournalPage() {
+export const metadata: Metadata = {
+  title: "Diario Contable — FiniTax GT",
+  description: "Partidas de diario y libro mayor",
+};
+
+export default async function JournalPage(props: { searchParams: Promise<{ page?: string }> }) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page) || 1;
+  const pageSize = 20;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("organization_id")
+    .select("organization_id, organization:organizations(name)")
     .eq("user_id", user.id)
     .limit(1)
     .single();
 
   if (!membership) redirect("/dashboard");
 
-  const { data: entries } = await supabase
+  const orgName = (membership.organization as any)?.name || "Mi Empresa";
+
+  const { data: entries, count: entriesCount } = await supabase
     .from("journal_entries")
-    .select(`*, lines:journal_entry_lines(*, account:chart_of_accounts(account_code, account_name))`)
+    .select(`*, lines:journal_entry_lines(*, account:chart_of_accounts(account_code, account_name))`, { count: "exact" })
     .eq("organization_id", membership.organization_id)
     .order("entry_date", { ascending: false })
-    .limit(100);
+    .range(from, to);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Diario Contable</h1>
-          <p className="text-muted-foreground">Partidas de diario y libro mayor</p>
+        <div className="page-header">
+          <h1>Diario Contable</h1>
+          <p>Partidas de diario y libro mayor</p>
         </div>
-        <Link href="/dashboard/journal/new">
-          <Button><Plus className="mr-2 h-4 w-4" /> Nueva Partida</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <JournalExportButton
+            orgId={membership.organization_id}
+            orgName={orgName}
+            entries={entries || []}
+          />
+          <Link href="/dashboard/journal/new">
+            <Button><Plus className="mr-2 h-4 w-4" /> Nueva Partida</Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -54,7 +77,7 @@ export default async function JournalPage() {
           ) : (
             <div className="space-y-4">
               {entries.map((entry: any) => (
-                <div key={entry.id} className="rounded-lg border p-4">
+                <div key={entry.id} className="rounded-xl border border-border/60 p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="font-medium">{entry.description}</p>
@@ -100,6 +123,8 @@ export default async function JournalPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination totalItems={entriesCount ?? 0} pageSize={pageSize} />
     </div>
   );
 }

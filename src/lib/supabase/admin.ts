@@ -21,8 +21,8 @@ export function createAdminClient() {
   });
 }
 
-// Hardcoded admin email — the only account allowed into /admin
-export const ADMIN_EMAIL = "admin@finitax.com";
+// Admin email — configurable via env var, falls back to default
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@finitax.com";
 
 // Verify that the currently logged-in user is the super admin
 export async function isAdminUser(supabase: ReturnType<typeof createSupabaseClient>): Promise<boolean> {

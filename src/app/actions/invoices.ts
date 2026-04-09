@@ -102,7 +102,8 @@ export async function createInvoice(formData: FormData) {
 
     const itemTaxType = item.tax_type || taxType;
     let ivaAmount = 0;
-    if (itemTaxType === "GRAVADA") {
+    // FPEQ (pequeño contribuyente) does NOT charge IVA — pays 5% flat tax instead
+    if (itemTaxType === "GRAVADA" && felType !== "FPEQ") {
       // IVA 12% is included in Guatemala prices
       ivaAmount = netAmount - (netAmount / 1.12);
     }
@@ -141,8 +142,9 @@ export async function createInvoice(formData: FormData) {
       total: Math.round(total * 100) / 100,
       tax_type: taxType,
       is_pequeno_contribuyente: felType === "FPEQ",
-      retencion_isr: 0,
-      retencion_iva: 0,
+      // FESP (Factura Especial): mandatory ISR & IVA retentions
+      retencion_isr: felType === "FESP" ? Math.round(total * 0.05 * 100) / 100 : 0,
+      retencion_iva: felType === "FESP" ? Math.round(totalIva * 100) / 100 : 0,
       contact_id: contactId || null,
       notes: notes || null,
       invoice_date: invoiceDate || new Date().toISOString().split("T")[0],
@@ -309,7 +311,8 @@ export async function updateInvoice(invoiceId: string, formData: FormData) {
 
     const itemTaxType = item.tax_type || taxType;
     let ivaAmount = 0;
-    if (itemTaxType === "GRAVADA") {
+    // FPEQ does NOT charge IVA
+    if (itemTaxType === "GRAVADA" && felType !== "FPEQ") {
       ivaAmount = netAmount - (netAmount / 1.12);
     }
     totalIva += ivaAmount;

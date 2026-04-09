@@ -9,6 +9,9 @@ import { TAX_RATES } from "@/lib/tax-utils";
 
 export async function getPersonalIncome(orgId: string, year?: number) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const targetYear = year || new Date().getFullYear();
   
   const { data, error } = await supabase
@@ -74,6 +77,9 @@ export async function deletePersonalIncome(id: string, orgId: string) {
 
 export async function getPersonalDeductions(orgId: string, year?: number) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const targetYear = year || new Date().getFullYear();
   
   const { data, error } = await supabase
@@ -134,6 +140,9 @@ export async function deletePersonalDeduction(id: string, orgId: string) {
 
 export async function getIsrRetenciones(orgId: string, year?: number, direction?: "RECEIVED" | "MADE") {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const targetYear = year || new Date().getFullYear();
   
   let query = supabase

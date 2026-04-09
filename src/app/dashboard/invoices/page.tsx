@@ -4,11 +4,19 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Receipt, FileText } from "lucide-react";
+import { Plus, Receipt, FileText, Sparkles } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { ListFilters } from "@/components/dashboard/list-filters";
 import { InvoicesTable } from "@/components/dashboard/invoices-table";
 import { getInvoices } from "@/app/actions/invoices";
+import { InvoiceExportButton } from "@/components/dashboard/invoice-export";
+import { Pagination } from "@/components/dashboard/pagination";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Facturación FEL — FiniTax GT",
+  description: "Gestión de facturas electrónicas FEL certificadas por SAT",
+};
 
 const statusLabels: Record<string, string> = {
   DRAFT: "Borrador",
@@ -20,7 +28,7 @@ const statusLabels: Record<string, string> = {
 export default async function InvoicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; status?: string; payment_status?: string; type?: string; dateFrom?: string; dateTo?: string }>;
+  searchParams: Promise<{ search?: string; status?: string; payment_status?: string; type?: string; dateFrom?: string; dateTo?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -29,12 +37,14 @@ export default async function InvoicesPage({
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("organization_id")
+    .select("organization_id, organization:organizations(name)")
     .eq("user_id", user.id)
     .limit(1)
     .single();
 
   if (!membership) redirect("/dashboard");
+
+  const orgName = (membership.organization as any)?.name || "Mi Empresa";
 
   // Use the server action with filters
   const invoices = await getInvoices(membership.organization_id, {
@@ -59,17 +69,30 @@ export default async function InvoicesPage({
   const totalPendingPayment = filteredInvoices.filter((i: any) => i.payment_status !== "PAID" && i.status === "CERTIFIED").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Facturación FEL</h1>
-          <p className="text-muted-foreground">Gestiona tus facturas electrónicas certificadas por SAT</p>
+        <div className="page-header">
+          <h1>Facturación FEL</h1>
+          <p>Gestiona tus facturas electrónicas certificadas por SAT</p>
         </div>
-        <Link href="/dashboard/invoices/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Nueva Factura
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <InvoiceExportButton
+            orgId={membership.organization_id}
+            orgName={orgName}
+            invoices={filteredInvoices}
+            filters={{ dateFrom: params.dateFrom, dateTo: params.dateTo, status: params.status }}
+          />
+          <Link href="/dashboard/imports/ai-workspace">
+            <Button variant="outline">
+              <Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Importar con IA
+            </Button>
+          </Link>
+          <Link href="/dashboard/invoices/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Nueva Factura
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -111,48 +134,48 @@ export default async function InvoicesPage({
       </Suspense>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-              <Receipt className="h-5 w-5 text-green-600" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-emerald">
+              <Receipt className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Facturado</p>
-              <p className="text-xl font-bold">{formatCurrency(totalCertified)}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Total Facturado</p>
+              <p className="text-xl font-bold tabular-nums">{formatCurrency(totalCertified)}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-              <FileText className="h-5 w-5 text-blue-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-blue">
+              <FileText className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Certificadas</p>
-              <p className="text-xl font-bold">{filteredInvoices.filter((i: any) => i.status === "CERTIFIED").length}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Certificadas</p>
+              <p className="text-xl font-bold tabular-nums">{filteredInvoices.filter((i: any) => i.status === "CERTIFIED").length}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-50">
-              <FileText className="h-5 w-5 text-yellow-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-amber">
+              <FileText className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Borradores</p>
-              <p className="text-xl font-bold">{totalDraft}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Borradores</p>
+              <p className="text-xl font-bold tabular-nums">{totalDraft}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50">
-              <Receipt className="h-5 w-5 text-red-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-rose">
+              <Receipt className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Por Cobrar</p>
-              <p className="text-xl font-bold">{totalPendingPayment}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Por Cobrar</p>
+              <p className="text-xl font-bold tabular-nums">{totalPendingPayment}</p>
             </div>
           </CardContent>
         </Card>
@@ -165,6 +188,7 @@ export default async function InvoicesPage({
         </CardHeader>
         <CardContent>
           <InvoicesTable invoices={filteredInvoices} organizationId={membership.organization_id} />
+          <Pagination totalItems={filteredInvoices.length} pageSize={25} />
         </CardContent>
       </Card>
     </div>

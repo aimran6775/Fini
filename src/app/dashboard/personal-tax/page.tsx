@@ -17,6 +17,7 @@ import { AddIncomeForm } from "@/components/dashboard/add-income-form";
 import { AddDeductionForm } from "@/components/dashboard/add-deduction-form";
 import { AddRetencionForm } from "@/components/dashboard/add-retencion-form";
 import { YearSelector } from "@/components/dashboard/year-selector";
+import { PersonalTaxExportButton } from "@/components/dashboard/personal-tax-export";
 import { 
   getPersonalIncome, 
   getPersonalDeductions, 
@@ -65,19 +66,27 @@ export default async function PersonalTaxPage({
     : { type: "favor", amount: taxSummary.calculation.isrAFavor };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Wallet className="h-7 w-7 text-primary" />
+        <div className="page-header">
+          <h1 className="flex items-center gap-2">
+            <Wallet className="h-6 w-6 text-primary" />
             Impuestos Personales
           </h1>
-          <p className="text-muted-foreground">
+          <p>
             Gestiona tus ingresos, deducciones y calcula tu ISR personal — Año {selectedYear}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <PersonalTaxExportButton
+            orgId={orgId}
+            orgName={(membership.organization as any)?.name || "Mi Empresa"}
+            year={selectedYear}
+            incomes={incomes}
+            deductions={deductions}
+            retenciones={retencionesRecibidas}
+          />
           <YearSelector currentYear={currentYear} />
           <Link href="/dashboard/tax">
             <Button variant="outline" size="sm">
@@ -93,7 +102,7 @@ export default async function PersonalTaxPage({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="rounded-full bg-green-100 p-2">
+              <div className="rounded-full bg-green-100 dark:bg-green-900 p-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
               </div>
               <div>
@@ -132,10 +141,10 @@ export default async function PersonalTaxPage({
           </CardContent>
         </Card>
         
-        <Card className={isrResult.type === "pagar" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}>
+        <Card className={isrResult.type === "pagar" ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/40" : "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/40"}>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className={`rounded-full p-2 ${isrResult.type === "pagar" ? "bg-red-100" : "bg-green-100"}`}>
+              <div className={`rounded-full p-2 ${isrResult.type === "pagar" ? "bg-red-100 dark:bg-red-900" : "bg-green-100 dark:bg-green-900"}`}>
                 {isrResult.type === "pagar" 
                   ? <ArrowUpRight className="h-5 w-5 text-red-600" />
                   : <ArrowDownRight className="h-5 w-5 text-green-600" />
@@ -257,19 +266,19 @@ export default async function PersonalTaxPage({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div className="rounded-lg bg-gray-50 p-4 text-center">
+                <div className="rounded-lg bg-gray-50 dark:bg-muted p-4 text-center">
                   <p className="text-sm text-muted-foreground">Renta Imponible</p>
                   <p className="text-xl font-bold">{formatGTQ(taxSummary.calculation.rentaImponible)}</p>
                 </div>
-                <div className="rounded-lg bg-gray-50 p-4 text-center">
+                <div className="rounded-lg bg-gray-50 dark:bg-muted p-4 text-center">
                   <p className="text-sm text-muted-foreground">ISR Causado</p>
                   <p className="text-xl font-bold">{formatGTQ(taxSummary.calculation.isrBruto)}</p>
                 </div>
-                <div className="rounded-lg bg-orange-50 p-4 text-center">
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-950/40 p-4 text-center">
                   <p className="text-sm text-muted-foreground">ISR Retenido</p>
                   <p className="text-xl font-bold text-orange-600">{formatGTQ(taxSummary.calculation.isrRetenido)}</p>
                 </div>
-                <div className={`rounded-lg p-4 text-center ${isrResult.type === "pagar" ? "bg-red-50" : "bg-green-50"}`}>
+                <div className={`rounded-lg p-4 text-center ${isrResult.type === "pagar" ? "bg-red-50 dark:bg-red-950/40" : "bg-green-50 dark:bg-green-950/40"}`}>
                   <p className="text-sm text-muted-foreground">
                     {isrResult.type === "pagar" ? "ISR a Pagar" : "ISR a Favor"}
                   </p>

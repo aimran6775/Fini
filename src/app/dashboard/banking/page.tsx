@@ -4,9 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Landmark, Plus, ChevronRight } from "lucide-react";
+import { Landmark, Plus, ChevronRight, Sparkles } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Bancos — FiniTax GT",
+  description: "Cuentas bancarias y conciliación",
+};
 
 export default async function BankingPage() {
   const supabase = await createClient();
@@ -31,25 +37,30 @@ export default async function BankingPage() {
   const totalBalance = accounts?.reduce((sum: number, a: any) => sum + Number(a.current_balance || 0), 0) ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Bancos</h1>
-          <p className="text-muted-foreground">Cuentas bancarias y conciliación</p>
+        <div className="page-header">
+          <h1>Bancos</h1>
+          <p>Cuentas bancarias y conciliación</p>
         </div>
-        <Link href="/dashboard/banking/new">
-          <Button><Plus className="mr-2 h-4 w-4" /> Nueva Cuenta</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/imports/ai-workspace">
+            <Button variant="outline"><Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Importar con IA</Button>
+          </Link>
+          <Link href="/dashboard/banking/new">
+            <Button><Plus className="mr-2 h-4 w-4" /> Nueva Cuenta</Button>
+          </Link>
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="flex items-center gap-4 p-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-            <Landmark className="h-6 w-6 text-blue-600" />
+      <Card className="card-hover">
+        <CardContent className="flex items-center gap-4 p-5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl kpi-blue">
+            <Landmark className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Saldo Total</p>
-            <p className="text-3xl font-bold">{formatCurrency(totalBalance)}</p>
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Saldo Total</p>
+            <p className="text-3xl font-bold tabular-nums">{formatCurrency(totalBalance)}</p>
           </div>
         </CardContent>
       </Card>

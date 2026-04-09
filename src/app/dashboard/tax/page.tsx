@@ -7,6 +7,12 @@ import { Calculator, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { TAX_RATES } from "@/lib/tax-utils";
 import { TaxCalculator } from "@/components/dashboard/tax-calculator";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Impuestos — FiniTax GT",
+  description: "Gestión fiscal: IVA, ISR, ISO y más",
+};
 
 export default async function TaxPage() {
   const supabase = await createClient();
@@ -31,67 +37,67 @@ export default async function TaxPage() {
     .limit(24);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Impuestos</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-6 animate-fade-in">
+      <div className="page-header">
+        <h1>Impuestos</h1>
+        <p className="text-sm text-muted-foreground">
           Régimen: {org?.isr_regime === "UTILIDADES" ? "Sobre Utilidades (25%)" : "Simplificado (5%/7%)"} •
           Contribuyente: {org?.contribuyente_type === "PEQUENO" ? "Pequeño" : "General"}
         </p>
       </div>
 
       {/* Tax Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">IVA</p>
-            <p className="text-2xl font-bold">{(TAX_RATES.IVA * 100).toFixed(0)}%</p>
-            <p className="text-xs text-muted-foreground">Mensual — Vence día 15</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">IVA</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">{(TAX_RATES.IVA * 100).toFixed(0)}%</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Mensual — Vence día 15</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">ISR</p>
-            <p className="text-2xl font-bold">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">ISR</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">
               {org?.isr_regime === "UTILIDADES" ? "25%" : "5%/7%"}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
               {org?.isr_regime === "UTILIDADES" ? "Trimestral" : "Mensual"} — Sobre renta
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">ISO</p>
-            <p className="text-2xl font-bold">{(TAX_RATES.ISO * 100).toFixed(0)}%</p>
-            <p className="text-xs text-muted-foreground">Trimestral — Sobre activos/ingresos</p>
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">ISO</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">{(TAX_RATES.ISO * 100).toFixed(0)}%</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Trimestral — Sobre activos/ingresos</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Timbre Fiscal</p>
-            <p className="text-2xl font-bold">{(TAX_RATES.STAMP_TAX * 100).toFixed(0)}%</p>
-            <p className="text-xs text-muted-foreground">Sobre documentos no afectos a IVA</p>
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Timbre Fiscal</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">{(TAX_RATES.STAMP_TAX * 100).toFixed(0)}%</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Sobre documentos no afectos a IVA</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Retention rates info */}
       <Card>
-        <CardHeader><CardTitle>Tasas de Retención ISR</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Tasas de Retención ISR</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg bg-blue-50 p-4">
-              <p className="font-medium">Servicios Profesionales</p>
-              <p className="text-2xl font-bold text-blue-700">5%</p>
+            <div className="rounded-xl kpi-blue p-4">
+              <p className="text-[12px] font-medium uppercase tracking-wide">Servicios Profesionales</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums">5%</p>
             </div>
-            <div className="rounded-lg bg-green-50 p-4">
-              <p className="font-medium">Compra de Bienes</p>
-              <p className="text-2xl font-bold text-green-700">6.5%</p>
+            <div className="rounded-xl kpi-emerald p-4">
+              <p className="text-[12px] font-medium uppercase tracking-wide">Compra de Bienes</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums">6.5%</p>
             </div>
-            <div className="rounded-lg bg-orange-50 p-4">
-              <p className="font-medium">No Domiciliados</p>
-              <p className="text-2xl font-bold text-orange-700">15%</p>
+            <div className="rounded-xl kpi-orange p-4">
+              <p className="text-[12px] font-medium uppercase tracking-wide">No Domiciliados</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums">15%</p>
             </div>
           </div>
         </CardContent>

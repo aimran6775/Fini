@@ -3,12 +3,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireOrgMembership } from "@/lib/auth-guard";
 
 // ─── Recurring Transactions ────────────────────────────────────
 
 export async function getRecurringTransactions(orgId: string) {
   const supabase = await createClient();
-  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("recurring_transactions")
     .select("*")
@@ -24,15 +28,15 @@ export async function getRecurringTransactions(orgId: string) {
 
   const [{ data: invoices }, { data: expenses }] = await Promise.all([
     invoiceIds.length > 0
-      ? supabase.from("fel_invoices").select("id, client_name, total_amount, status").in("id", invoiceIds)
+      ? supabase.from("fel_invoices").select("id, client_name, total, status").in("id", invoiceIds)
       : Promise.resolve({ data: [] as any[] }),
     expenseIds.length > 0
-      ? supabase.from("expenses").select("id, vendor_name, total_amount, status").in("id", expenseIds)
+      ? supabase.from("expenses").select("id, supplier_name, amount, status").in("id", expenseIds)
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const invoiceMap = Object.fromEntries((invoices || []).map(i => [i.id, i]));
-  const expenseMap = Object.fromEntries((expenses || []).map(e => [e.id, e]));
+  const expenseMap = Object.fromEntries((expenses || []).map(e => [e.id, { ...e, vendor_name: e.supplier_name, total_amount: e.amount }]));
 
   return data.map(r => ({
     ...r,
@@ -45,6 +49,9 @@ export async function createRecurringTransaction(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  const orgId = formData.get("organization_id") as string;
+  await requireOrgMembership(user.id, orgId);
 
   const { error } = await supabase.from("recurring_transactions").insert({
     organization_id: formData.get("organization_id") as string,
@@ -64,7 +71,10 @@ export async function createRecurringTransaction(formData: FormData) {
 
 export async function updateRecurringTransaction(id: string, formData: FormData) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
   const orgId = formData.get("organization_id") as string;
+  await requireOrgMembership(user.id, orgId);
 
   const { error } = await supabase
     .from("recurring_transactions")
@@ -84,6 +94,9 @@ export async function updateRecurringTransaction(id: string, formData: FormData)
 
 export async function deleteRecurringTransaction(id: string, orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
 
   const { error } = await supabase
     .from("recurring_transactions")
@@ -98,6 +111,9 @@ export async function deleteRecurringTransaction(id: string, orgId: string) {
 
 export async function toggleRecurringActive(id: string, orgId: string, isActive: boolean) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
 
   const { error } = await supabase
     .from("recurring_transactions")
@@ -285,6 +301,10 @@ export async function generateFromRecurring(recurringId: string, orgId: string) 
 // Get due recurring transactions (next_date <= today)
 export async function getDueRecurringTransactions(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const today = new Date().toISOString().split("T")[0];
   
   const { data, error } = await supabase
@@ -304,15 +324,15 @@ export async function getDueRecurringTransactions(orgId: string) {
 
   const [{ data: invoices }, { data: expenses }] = await Promise.all([
     invoiceIds.length > 0
-      ? supabase.from("fel_invoices").select("id, client_name, total_amount").in("id", invoiceIds)
+      ? supabase.from("fel_invoices").select("id, client_name, total").in("id", invoiceIds)
       : Promise.resolve({ data: [] as any[] }),
     expenseIds.length > 0
-      ? supabase.from("expenses").select("id, vendor_name, total_amount").in("id", expenseIds)
+      ? supabase.from("expenses").select("id, supplier_name, amount").in("id", expenseIds)
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const invoiceMap = Object.fromEntries((invoices || []).map(i => [i.id, i]));
-  const expenseMap = Object.fromEntries((expenses || []).map(e => [e.id, e]));
+  const expenseMap = Object.fromEntries((expenses || []).map(e => [e.id, { ...e, vendor_name: e.supplier_name, total_amount: e.amount }]));
 
   return data.map(r => ({
     ...r,

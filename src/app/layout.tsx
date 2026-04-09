@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Fini Tax GT",
   },
   description:
-    "QuickBooks + TurboTax para Guatemala. Calcula impuestos personales o gestiona tu empresa: facturación FEL, ISR, IVA, ISO, planilla, IGSS y SAT.",
+    "Plataforma fiscal y contable para Guatemala. Calcula impuestos personales o gestiona tu empresa: facturación FEL, ISR, IVA, ISO, planilla, IGSS y SAT.",
   keywords: [
     "impuestos guatemala",
     "contabilidad guatemala",
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
     "planilla IGSS",
     "IVA Guatemala",
     "ISO Guatemala",
-    "quickbooks guatemala",
-    "turbotax guatemala",
+    "software contable guatemala",
+    "plataforma fiscal guatemala",
     "Fini Tax",
   ],
   openGraph: {
     title: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
-    description: "QuickBooks + TurboTax para Guatemala. Impuestos personales, facturación FEL, contabilidad, planilla y más.",
+    description: "Plataforma fiscal y contable para Guatemala. Impuestos personales, facturación FEL, contabilidad, planilla y más.",
     type: "website",
     locale: "es_GT",
     siteName: "Fini Tax GT",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Fini Tax GT — Impuestos y Contabilidad para Guatemala",
-    description: "QuickBooks + TurboTax para Guatemala. Facturación FEL, ISR, IVA, ISO, planilla y más.",
+    description: "Plataforma fiscal y contable para Guatemala. Facturación FEL, ISR, IVA, ISO, planilla y más.",
     images: ["/images/og-image.png"],
   },
 };

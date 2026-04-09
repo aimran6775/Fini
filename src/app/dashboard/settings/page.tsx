@@ -44,10 +44,10 @@ export default async function SettingsPage() {
     .eq("organization_id", membership.organization_id);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Configuración</h1>
-        <p className="text-muted-foreground">Administra tu organización, equipo y preferencias</p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="page-header">
+        <h1>Configuración</h1>
+        <p>Administra tu organización, equipo y preferencias</p>
       </div>
 
       <Tabs defaultValue="org" className="space-y-6">

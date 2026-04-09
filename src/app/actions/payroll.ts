@@ -5,11 +5,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { TAX_RATES } from "@/lib/tax-utils";
 import { requireOrgMembership, verifyEntityOwnership } from "@/lib/auth-guard";
+import { employeeSchema } from "@/lib/types/forms";
 
-// ISR employee brackets (monthly)
+// ISR employee brackets (monthly) — per Decreto 10-2012
+// Must deduct IGSS (4.83%) before applying ISR brackets
 function calculateMonthlyISR(monthlyGross: number): number {
   const annualGross = monthlyGross * 12;
-  const taxableIncome = Math.max(0, annualGross - TAX_RATES.ISR_EMPLOYEE_DEDUCTION);
+  const annualIGSS = monthlyGross * TAX_RATES.IGSS_EMPLOYEE * 12;
+  const taxableIncome = Math.max(0, annualGross - annualIGSS - TAX_RATES.ISR_EMPLOYEE_DEDUCTION);
   let annualISR = 0;
 
   if (taxableIncome <= TAX_RATES.ISR_EMPLOYEE_THRESHOLD) {
@@ -43,6 +46,19 @@ export async function createEmployee(formData: FormData) {
   if (!user) redirect("/login");
 
   const orgId = formData.get("organization_id") as string;
+  await requireOrgMembership(user.id, orgId);
+
+  // Validate with Zod schema
+  const validation = employeeSchema.safeParse({
+    first_name: formData.get("first_name") as string,
+    last_name: formData.get("last_name") as string,
+    dpi_number: formData.get("dpi_number") as string,
+    base_salary: parseFloat(formData.get("base_salary") as string || "0"),
+    hire_date: formData.get("hire_date") as string,
+  });
+  if (!validation.success) {
+    return { error: validation.error.issues[0]?.message || "Datos inválidos" };
+  }
 
   const { error } = await supabase.from("employees").insert({
     organization_id: orgId,
@@ -128,7 +144,7 @@ export async function runPayroll(formData: FormData) {
     // Accruals (monthly provision)
     const aguinaldoAccrual = Math.round(baseSalary / 12 * 100) / 100;
     const bono14Accrual = Math.round(baseSalary / 12 * 100) / 100;
-    const vacationAccrual = Math.round(baseSalary * 15 / 365 * 100) / 100;
+    const vacationAccrual = Math.round(baseSalary * 15 / 365 * 1.3 * 100) / 100; // 30% surcharge Art. 130
     const indemnizacionAccrual = Math.round(baseSalary / 12 * 100) / 100;
 
     const empTotalDeductions = igssEmployee + isrWithholding;

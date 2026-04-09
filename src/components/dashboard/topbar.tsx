@@ -68,17 +68,17 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
   }, []);
 
   return (
-    <header className="flex items-center gap-3 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6 h-14 flex-shrink-0">
+    <header className="sticky top-0 z-30 mx-3 mt-3 flex h-14 flex-shrink-0 items-center gap-3 rounded-2xl border border-border/40 bg-background/80 px-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-2xl sm:mx-4 sm:px-5 dark:border-white/[0.06] dark:shadow-none">
       {/* Mobile menu */}
-      <button onClick={onMenuToggle} aria-label="Abrir menú" className="lg:hidden -ml-1 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+      <button onClick={onMenuToggle} aria-label="Abrir menú" className="-ml-1 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden">
         <Menu className="h-5 w-5" />
       </button>
 
       {/* Breadcrumbs */}
-      <nav className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground flex-1 min-w-0">
+      <nav className="hidden min-w-0 flex-1 items-center gap-1 text-[13px] text-muted-foreground sm:flex">
         {breadcrumbs.map((crumb, i) => (
-          <span key={i} className="flex items-center gap-1 min-w-0">
-            {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground/40 flex-shrink-0" />}
+          <span key={i} className="flex min-w-0 items-center gap-1">
+            {i > 0 && <ChevronRight className="h-3 w-3 flex-shrink-0 text-muted-foreground/40" />}
             <span className={cn("truncate", crumb.isLast ? "text-foreground font-medium" : "")}>
               {crumb.label}
             </span>
@@ -95,6 +95,16 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
 
       {/* Right */}
       <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => document.dispatchEvent(new Event("open-command-palette"))}
+          className="hidden items-center gap-2.5 rounded-lg border border-border/40 bg-muted/25 px-3 py-1.5 text-[13px] text-muted-foreground/50 transition-all duration-150 hover:bg-muted/40 hover:border-border/60 md:flex w-[220px]"
+          aria-label="Buscar"
+        >
+          <Search className="h-3.5 w-3.5 flex-shrink-0 opacity-50" />
+          <span className="flex-1 text-left">Buscar...</span>
+          <kbd className="flex h-5 items-center rounded border border-border/50 bg-background/80 px-1.5 text-[10px] font-medium text-muted-foreground/50">⌘K</kbd>
+        </button>
         <ThemeToggle />
         <NotificationBell />
 
@@ -102,7 +112,7 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted transition-colors"
+            className="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1 transition-colors hover:border-border hover:bg-muted/70"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white text-[11px] font-semibold">
               {initials}
@@ -111,22 +121,22 @@ export function Topbar({ user, profile, onMenuToggle }: TopbarProps) {
           </button>
 
           {userMenuOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-52 rounded-lg border bg-popover shadow-lg shadow-black/5 z-50 overflow-hidden animate-scale-in origin-top-right">
-              <div className="px-3 py-2.5 border-b">
-                <p className="text-sm font-medium">{displayName}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right overflow-hidden rounded-xl border border-border/50 bg-popover/95 shadow-xl shadow-black/10 backdrop-blur-2xl animate-scale-in dark:border-white/[0.08] dark:shadow-black/30">
+              <div className="border-b border-border/50 px-3 py-2.5">
+                <p className="text-[13px] font-medium">{displayName}</p>
+                <p className="text-[11px] text-muted-foreground/70 truncate">{user.email}</p>
               </div>
               <div className="p-1">
-                <a href="/dashboard/settings" className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm hover:bg-muted transition-colors">
-                  <UserIcon className="h-3.5 w-3.5 text-muted-foreground" /> Mi Perfil
+                <a href="/dashboard/settings" className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] hover:bg-muted/70 transition-colors">
+                  <UserIcon className="h-3.5 w-3.5 text-muted-foreground/60" /> Mi Perfil
                 </a>
-                <a href="/dashboard/settings" className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm hover:bg-muted transition-colors">
-                  <Settings className="h-3.5 w-3.5 text-muted-foreground" /> Configuración
+                <a href="/dashboard/settings" className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] hover:bg-muted/70 transition-colors">
+                  <Settings className="h-3.5 w-3.5 text-muted-foreground/60" /> Configuración
                 </a>
               </div>
-              <div className="p-1 border-t">
+              <div className="p-1 border-t border-border/50">
                 <form action={signOut}>
-                  <button type="submit" className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                  <button type="submit" className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                     <LogOut className="h-3.5 w-3.5" /> Cerrar Sesión
                   </button>
                 </form>

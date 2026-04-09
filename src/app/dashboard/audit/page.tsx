@@ -4,8 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Shield } from "lucide-react";
+import { Pagination } from "@/components/dashboard/pagination";
+import type { Metadata } from "next";
 
-export default async function AuditPage() {
+export const metadata: Metadata = {
+  title: "Auditoría — FiniTax GT",
+  description: "Bitácora de auditoría del sistema",
+};
+
+export default async function AuditPage(props: { searchParams: Promise<{ page?: string }> }) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page) || 1;
+  const pageSize = 50;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -19,12 +32,12 @@ export default async function AuditPage() {
 
   if (!membership) redirect("/dashboard");
 
-  const { data: logs } = await supabase
+  const { data: logs, count: logsCount } = await supabase
     .from("audit_logs")
-    .select("*, user:user_profiles(first_name, last_name)")
+    .select("*, user:user_profiles(first_name, last_name)", { count: "exact" })
     .eq("organization_id", membership.organization_id)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(from, to);
 
   const actionColors: Record<string, string> = {
     CREATE: "success",
@@ -36,10 +49,10 @@ export default async function AuditPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Bitácora de Auditoría</h1>
-        <p className="text-muted-foreground">Registro de todas las acciones del sistema</p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="page-header">
+        <h1>Bitácora de Auditoría</h1>
+        <p>Registro de todas las acciones del sistema</p>
       </div>
 
       <Card>
@@ -82,6 +95,8 @@ export default async function AuditPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination totalItems={logsCount ?? 0} pageSize={pageSize} />
     </div>
   );
 }

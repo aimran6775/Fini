@@ -47,14 +47,14 @@ export default async function RecurringPage() {
   const [{ data: invoices }, { data: expenses }] = await Promise.all([
     supabase
       .from("fel_invoices")
-      .select("id, client_name, total_amount, status")
+      .select("id, client_name, total, status")
       .eq("organization_id", orgId)
       .in("status", ["DRAFT", "CERTIFIED", "AUTHORIZED"])
       .order("created_at", { ascending: false })
       .limit(50),
     supabase
       .from("expenses")
-      .select("id, vendor_name, total_amount, status")
+      .select("id, supplier_name, amount, status")
       .eq("organization_id", orgId)
       .order("created_at", { ascending: false })
       .limit(50),
@@ -65,8 +65,8 @@ export default async function RecurringPage() {
     .filter((r: any) => r.is_active)
     .reduce((sum: number, r: any) => {
       const amount = r.source_type === "INVOICE" 
-        ? Number(r.invoice?.total_amount || 0)
-        : Number(r.expense?.total_amount || 0);
+        ? Number(r.invoice?.total || r.invoice?.total_amount || 0)
+        : Number(r.expense?.total_amount || r.expense?.amount || 0);
       
       // Normalize to monthly
       switch (r.frequency) {
@@ -81,13 +81,11 @@ export default async function RecurringPage() {
     }, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Transacciones Recurrentes</h1>
-          <p className="text-muted-foreground">
-            Automatiza facturas y gastos que se repiten periódicamente
-          </p>
+        <div className="page-header">
+          <h1>Transacciones Recurrentes</h1>
+          <p>Automatiza facturas y gastos que se repiten periódicamente</p>
         </div>
         <AddRecurringForm 
           orgId={orgId}
@@ -97,42 +95,42 @@ export default async function RecurringPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card className="card-hover">
+          <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-                <RefreshCw className="h-6 w-6 text-blue-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl kpi-blue">
+                <RefreshCw className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Activas</p>
-                <p className="text-2xl font-bold">{activeCount}</p>
+                <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Activas</p>
+                <p className="text-2xl font-bold tabular-nums">{activeCount}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="card-hover">
+          <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-50">
-                <AlertCircle className="h-6 w-6 text-orange-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl kpi-orange">
+                <AlertCircle className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Pendientes de Generar</p>
-                <p className="text-2xl font-bold">{dueRecurring.length}</p>
+                <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Pendientes de Generar</p>
+                <p className="text-2xl font-bold tabular-nums">{dueRecurring.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="card-hover">
+          <CardContent className="p-5">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                <Calendar className="h-6 w-6 text-green-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl kpi-emerald">
+                <Calendar className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Mensual Estimado</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalMonthly)}</p>
+                <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Total Mensual Estimado</p>
+                <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalMonthly)}</p>
               </div>
             </div>
           </CardContent>
@@ -141,20 +139,20 @@ export default async function RecurringPage() {
 
       {/* Due Transactions Alert */}
       {dueRecurring.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-200/60 bg-gradient-to-r from-orange-50 to-amber-50/50 dark:from-orange-950/40 dark:to-amber-950/20 dark:border-orange-800/40">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-orange-800">
+            <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-300">
               <AlertCircle className="h-5 w-5" />
               Transacciones Pendientes de Generar
             </CardTitle>
-            <CardDescription className="text-orange-700">
+            <CardDescription className="text-orange-700 dark:text-orange-400">
               Estas transacciones están listas para ser generadas
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {dueRecurring.map((rec: any) => (
-                <div key={rec.id} className="flex items-center justify-between rounded-lg bg-white p-3">
+                <div key={rec.id} className="flex items-center justify-between rounded-lg bg-white dark:bg-card p-3">
                   <div className="flex items-center gap-3">
                     {rec.source_type === "INVOICE" ? (
                       <FileText className="h-4 w-4 text-blue-600" />
@@ -170,8 +168,8 @@ export default async function RecurringPage() {
                       <p className="text-sm text-muted-foreground">
                         {formatCurrency(
                           rec.source_type === "INVOICE" 
-                            ? rec.invoice?.total_amount 
-                            : rec.expense?.total_amount
+                            ? (rec.invoice?.total || rec.invoice?.total_amount)
+                            : (rec.expense?.total_amount || rec.expense?.amount)
                         )} — {FREQUENCY_LABELS[rec.frequency]}
                       </p>
                     </div>
@@ -217,7 +215,9 @@ export default async function RecurringPage() {
                 {recurring.map((rec: any) => {
                   const isInvoice = rec.source_type === "INVOICE";
                   const name = isInvoice ? rec.invoice?.client_name : rec.expense?.vendor_name;
-                  const amount = isInvoice ? rec.invoice?.total_amount : rec.expense?.total_amount;
+                  const amount = isInvoice 
+                    ? (rec.invoice?.total || rec.invoice?.total_amount) 
+                    : (rec.expense?.total_amount || rec.expense?.amount);
                   const isPastDue = new Date(rec.next_date) <= new Date();
                   
                   return (

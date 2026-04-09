@@ -4,15 +4,23 @@ import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Plus, Users } from "lucide-react";
+import { Building2, Plus, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ListFilters } from "@/components/dashboard/list-filters";
+import { Pagination } from "@/components/dashboard/pagination";
+import { sanitizeSearch } from "@/lib/validate";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contactos — FiniTax GT",
+  description: "Gestión de clientes, proveedores y acreedores",
+};
 
 export default async function ContactsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; contact_type?: string; is_active?: string }>;
+  searchParams: Promise<{ search?: string; contact_type?: string; is_active?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -28,15 +36,22 @@ export default async function ContactsPage({
 
   if (!membership) redirect("/dashboard");
 
+  const page = Number(params.page) || 1;
+  const pageSize = 25;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   // Build query with filters
   let query = supabase
     .from("contacts")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("organization_id", membership.organization_id)
-    .order("name");
+    .order("name")
+    .range(from, to);
 
   if (params.search) {
-    query = query.or(`name.ilike.%${params.search}%,nit_number.ilike.%${params.search}%,email.ilike.%${params.search}%`);
+    const s = sanitizeSearch(params.search);
+    if (s) query = query.or(`name.ilike.%${s}%,nit_number.ilike.%${s}%,email.ilike.%${s}%`);
   }
   if (params.contact_type) {
     query = query.eq("contact_type", params.contact_type);
@@ -47,18 +62,23 @@ export default async function ContactsPage({
     query = query.eq("is_active", false);
   }
 
-  const { data: contacts } = await query;
+  const { data: contacts, count: contactsCount } = await query;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Contactos</h1>
-          <p className="text-muted-foreground">Clientes, proveedores y acreedores</p>
+        <div className="page-header">
+          <h1>Contactos</h1>
+          <p>Clientes, proveedores y acreedores</p>
         </div>
-        <Link href="/dashboard/contacts/new">
-          <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Contacto</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/imports/ai-workspace">
+            <Button variant="outline"><Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Importar con IA</Button>
+          </Link>
+          <Link href="/dashboard/contacts/new">
+            <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Contacto</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -87,44 +107,44 @@ export default async function ContactsPage({
         />
       </Suspense>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-              <Users className="h-5 w-5 text-blue-600" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-blue">
+              <Users className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Clientes</p>
-              <p className="text-2xl font-bold">{(contacts || []).filter((c: any) => c.contact_type === "CLIENT" || c.contact_type === "BOTH").length}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Clientes</p>
+              <p className="text-2xl font-bold tabular-nums">{(contacts || []).filter((c: any) => c.contact_type === "CLIENT" || c.contact_type === "BOTH").length}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50">
-              <Building2 className="h-5 w-5 text-orange-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-orange">
+              <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Proveedores</p>
-              <p className="text-2xl font-bold">{(contacts || []).filter((c: any) => c.contact_type === "VENDOR" || c.contact_type === "BOTH").length}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Proveedores</p>
+              <p className="text-2xl font-bold tabular-nums">{(contacts || []).filter((c: any) => c.contact_type === "VENDOR" || c.contact_type === "BOTH").length}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-              <Users className="h-5 w-5 text-green-600" />
+        <Card className="card-hover">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg kpi-emerald">
+              <Users className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold">{contacts?.length ?? 0}</p>
+              <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Total</p>
+              <p className="text-2xl font-bold tabular-nums">{contacts?.length ?? 0}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Listado de Contactos ({contacts?.length ?? 0})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Listado de Contactos ({contactsCount ?? contacts?.length ?? 0})</CardTitle></CardHeader>
         <CardContent>
           {!contacts || contacts.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
@@ -132,6 +152,7 @@ export default async function ContactsPage({
               <p>No hay contactos que coincidan con tu búsqueda</p>
             </div>
           ) : (
+            <>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -168,6 +189,8 @@ export default async function ContactsPage({
                 ))}
               </TableBody>
             </Table>
+            <Pagination totalItems={contactsCount ?? 0} pageSize={pageSize} />
+            </>
           )}
         </CardContent>
       </Card>

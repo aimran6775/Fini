@@ -7,6 +7,12 @@ import { formatCurrency } from "@/lib/utils";
 import { Package, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Activos Fijos — FiniTax GT",
+  description: "Control de activos con depreciación fiscal guatemalteca",
+};
 
 // Guatemala fiscal depreciation rates (Decreto 10-2012)
 const DEPRECIATION_RATES: Record<string, { rate: number; label: string }> = {
@@ -44,34 +50,34 @@ export default async function AssetsPage() {
   const totalDepreciation = assets?.reduce((s, a: any) => s + Number(a.accumulated_depreciation || 0), 0) ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Activos Fijos</h1>
-          <p className="text-muted-foreground">Control de activos con depreciación fiscal guatemalteca</p>
+        <div className="page-header">
+          <h1>Activos Fijos</h1>
+          <p>Control de activos con depreciación fiscal guatemalteca</p>
         </div>
         <Link href="/dashboard/assets/new">
           <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Activo</Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Valor Total Adquisición</p>
-            <p className="text-xl font-bold">{formatCurrency(totalValue)}</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Valor Total Adquisición</p>
+            <p className="text-xl font-bold tabular-nums">{formatCurrency(totalValue)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Depreciación Acumulada</p>
-            <p className="text-xl font-bold text-red-600">{formatCurrency(totalDepreciation)}</p>
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Depreciación Acumulada</p>
+            <p className="text-xl font-bold text-red-600 tabular-nums">{formatCurrency(totalDepreciation)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Valor en Libros</p>
-            <p className="text-xl font-bold text-green-600">{formatCurrency(totalValue - totalDepreciation)}</p>
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Valor en Libros</p>
+            <p className="text-xl font-bold text-emerald-600 tabular-nums">{formatCurrency(totalValue - totalDepreciation)}</p>
           </CardContent>
         </Card>
       </div>
@@ -82,9 +88,9 @@ export default async function AssetsPage() {
         <CardContent>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {Object.values(DEPRECIATION_RATES).map((r) => (
-              <div key={r.label} className="rounded-lg border p-3 text-center">
-                <p className="text-xs text-muted-foreground">{r.label}</p>
-                <p className="text-lg font-bold text-primary">{(r.rate * 100).toFixed(r.rate === 0.3333 ? 2 : 0)}%</p>
+              <div key={r.label} className="rounded-xl border border-border/60 p-3 text-center shadow-sm">
+                <p className="text-[11px] text-muted-foreground">{r.label}</p>
+                <p className="text-lg font-bold text-primary tabular-nums">{(r.rate * 100).toFixed(r.rate === 0.3333 ? 2 : 0)}%</p>
               </div>
             ))}
           </div>

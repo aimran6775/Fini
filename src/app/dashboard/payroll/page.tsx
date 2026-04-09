@@ -8,6 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Users } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { PayrollExportButton } from "@/components/dashboard/payroll-export";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Planilla — FiniTax GT",
+  description: "Gestión de nómina, IGSS, IRTRA, INTECAP",
+};
 
 export default async function PayrollPage() {
   const supabase = await createClient();
@@ -16,13 +23,14 @@ export default async function PayrollPage() {
 
   const { data: membership } = await supabase
     .from("organization_members")
-    .select("organization_id")
+    .select("organization_id, organization:organizations(name)")
     .eq("user_id", user.id)
     .limit(1)
     .single();
 
   if (!membership) redirect("/dashboard");
   const orgId = membership.organization_id;
+  const orgName = (membership.organization as any)?.name || "Mi Empresa";
 
   const [{ data: employees }, { data: payrollRuns }] = await Promise.all([
     supabase.from("employees").select("*").eq("organization_id", orgId).order("last_name"),
@@ -34,13 +42,18 @@ export default async function PayrollPage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Planilla</h1>
-          <p className="text-muted-foreground">Gestión de nómina, IGSS, IRTRA, INTECAP</p>
+        <div className="page-header">
+          <h1>Planilla</h1>
+          <p>Gestión de nómina, IGSS, IRTRA, INTECAP</p>
         </div>
         <div className="flex gap-2">
+          <PayrollExportButton
+            orgId={orgId}
+            orgName={orgName}
+            payrollRuns={payrollRuns || []}
+          />
           <Link href="/dashboard/payroll/employees/new">
             <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Empleado</Button>
           </Link>
@@ -51,17 +64,17 @@ export default async function PayrollPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Empleados Activos</p>
-            <p className="text-2xl font-bold">{employees?.filter((e: any) => e.status === "ACTIVE").length ?? 0}</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Empleados Activos</p>
+            <p className="text-2xl font-bold tabular-nums">{employees?.filter((e: any) => e.status === "ACTIVE").length ?? 0}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">IGSS Patronal (10.67%)</p>
-            <p className="text-2xl font-bold text-red-600">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">IGSS Patronal (10.67%)</p>
+            <p className="text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">
               {formatCurrency(
                 (employees?.filter((e: any) => e.status === "ACTIVE")
                   .reduce((sum: number, e: any) => sum + Number(e.base_salary || 0), 0) ?? 0) * 0.1067
@@ -69,10 +82,10 @@ export default async function PayrollPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">IRTRA + INTECAP (2%)</p>
-            <p className="text-2xl font-bold text-orange-600">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">IRTRA + INTECAP (2%)</p>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
               {formatCurrency(
                 (employees?.filter((e: any) => e.status === "ACTIVE")
                   .reduce((sum: number, e: any) => sum + Number(e.base_salary || 0), 0) ?? 0) * 0.02
@@ -80,10 +93,10 @@ export default async function PayrollPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Nómina Mensual Bruta</p>
-            <p className="text-2xl font-bold">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Nómina Mensual Bruta</p>
+            <p className="text-2xl font-bold tabular-nums">
               {formatCurrency(
                 employees?.filter((e: any) => e.status === "ACTIVE")
                   .reduce((sum: number, e: any) => sum + Number(e.base_salary || 0), 0) ?? 0
@@ -132,7 +145,7 @@ export default async function PayrollPage() {
                         <TableCell>{emp.position}</TableCell>
                         <TableCell>{emp.work_shift}</TableCell>
                         <TableCell className="text-right">{formatCurrency(emp.base_salary)}</TableCell>
-                        <TableCell className="text-right text-red-600">
+                        <TableCell className="text-right text-rose-600 dark:text-rose-400">
                           {formatCurrency(Number(emp.base_salary) * 0.0483)}
                         </TableCell>
                         <TableCell>
@@ -174,7 +187,7 @@ export default async function PayrollPage() {
                         <TableCell>{formatDate(run.period_start)} — {formatDate(run.period_end)}</TableCell>
                         <TableCell>{run.details?.length ?? 0}</TableCell>
                         <TableCell className="text-right">{formatCurrency(run.total_gross)}</TableCell>
-                        <TableCell className="text-right text-red-600">{formatCurrency(run.total_deductions)}</TableCell>
+                        <TableCell className="text-right text-rose-600 dark:text-rose-400">{formatCurrency(run.total_deductions)}</TableCell>
                         <TableCell className="text-right font-medium">{formatCurrency(run.total_net)}</TableCell>
                         <TableCell>
                           <Badge variant={run.status === "APPROVED" ? "success" : run.status === "PAID" ? "default" : "secondary"}>

@@ -60,7 +60,7 @@ export default function Image() {
             lineHeight: 1.4,
           }}
         >
-          QuickBooks + TurboTax para Guatemala
+          Impuestos y Contabilidad para Guatemala
         </div>
 
         {/* Features */}

@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, Download } from "lucide-react";
+import { Printer, Download, FileSpreadsheet, Loader2 } from "lucide-react";
 import { formatCurrency, formatDate, formatNIT } from "@/lib/utils";
 import { FEL_TYPE_LABELS } from "@/lib/tax-utils";
+import { downloadInvoicePDF, type InvoicePDFData, type OrganizationPDFData } from "@/lib/pdf/invoice-pdf";
 
 interface InvoicePrintProps {
   invoice: {
@@ -24,6 +26,7 @@ interface InvoicePrintProps {
     retencion_iva: number | null;
     total: number;
     notes: string | null;
+    payment_status?: string;
     items: {
       description: string;
       quantity: number;
@@ -46,6 +49,8 @@ interface InvoicePrintProps {
 }
 
 export function InvoicePrintButton({ invoice, organization }: InvoicePrintProps) {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
@@ -58,28 +63,23 @@ export function InvoicePrintButton({ invoice, organization }: InvoicePrintProps)
     printWindow.document.close();
     printWindow.focus();
     
-    // Wait for content to load then print
     setTimeout(() => {
       printWindow.print();
     }, 250);
   };
 
-  const handleDownloadPDF = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Por favor permite las ventanas emergentes para descargar el PDF");
-      return;
+  const handleDownloadPDF = async () => {
+    setIsGenerating(true);
+    try {
+      downloadInvoicePDF(
+        invoice as InvoicePDFData,
+        organization as OrganizationPDFData
+      );
+    } catch {
+      alert("Error al generar el PDF. Intente de nuevo.");
+    } finally {
+      setIsGenerating(false);
     }
-
-    const html = generateInvoiceHTML(invoice, organization);
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-
-    // Add a small banner to tell the user to save as PDF
-    setTimeout(() => {
-      printWindow.print();
-    }, 300);
   };
 
   return (
@@ -88,9 +88,13 @@ export function InvoicePrintButton({ invoice, organization }: InvoicePrintProps)
         <Printer className="h-4 w-4 mr-2" />
         Imprimir
       </Button>
-      <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-        <Download className="h-4 w-4 mr-2" />
-        PDF
+      <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isGenerating}>
+        {isGenerating ? (
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : (
+          <Download className="h-4 w-4 mr-2" />
+        )}
+        Descargar PDF
       </Button>
     </div>
   );

@@ -6,6 +6,12 @@ import { formatCurrency } from "@/lib/utils";
 import { Wallet, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Presupuestos — FiniTax GT",
+  description: "Planificación y control presupuestario",
+};
 
 export default async function BudgetsPage() {
   const supabase = await createClient();
@@ -28,11 +34,11 @@ export default async function BudgetsPage() {
     .order("period_year", { ascending: false });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Presupuestos</h1>
-          <p className="text-muted-foreground">Planificación y control presupuestario</p>
+        <div className="page-header">
+          <h1>Presupuestos</h1>
+          <p>Planificación y control presupuestario</p>
         </div>
         <Link href="/dashboard/budgets/new">
           <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Presupuesto</Button>

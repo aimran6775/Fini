@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { logAuditEvent } from "@/app/actions/audit";
 import { requireOrgMembership, verifyEntityOwnership } from "@/lib/auth-guard";
+import { expenseSchema } from "@/lib/types/forms";
+import { sanitizeSearch } from "@/lib/validate";
 
 export async function getExpenses(orgId: string) {
   const supabase = await createClient();
@@ -30,6 +32,18 @@ export async function createExpense(formData: FormData) {
   const orgId = formData.get("organization_id") as string;
   const amount = parseFloat(formData.get("amount") as string);
   if (isNaN(amount) || amount <= 0) return { error: "El monto debe ser mayor a cero" };
+
+  // Validate with Zod schema
+  const validation = expenseSchema.safeParse({
+    description: formData.get("description") as string,
+    amount,
+    expense_date: formData.get("expense_date") as string,
+    currency: (formData.get("currency") as string) || "GTQ",
+    tax_type: (formData.get("tax_type") as string) || "GRAVADA",
+  });
+  if (!validation.success) {
+    return { error: validation.error.issues[0]?.message || "Datos inválidos" };
+  }
 
   const { error } = await supabase.from("expenses").insert({
     organization_id: orgId,

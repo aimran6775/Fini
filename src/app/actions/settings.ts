@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireOrgMembership } from "@/lib/auth-guard";
 
 export async function updateOrganization(orgId: string, formData: FormData) {
   const supabase = await createClient();
@@ -47,6 +48,10 @@ export async function updateOrganization(orgId: string, formData: FormData) {
 
 export async function getOrgMembers(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("organization_members")
     .select(`
@@ -147,6 +152,10 @@ export async function inviteMember(orgId: string, email: string, role: string) {
 
 export async function getInvitations(orgId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await requireOrgMembership(user.id, orgId);
+
   const { data, error } = await supabase
     .from("invitations")
     .select("*")
@@ -160,6 +169,9 @@ export async function getInvitations(orgId: string) {
 
 export async function cancelInvitation(invitationId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase
     .from("invitations")
     .update({ status: "EXPIRED" })

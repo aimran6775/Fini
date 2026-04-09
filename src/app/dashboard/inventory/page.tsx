@@ -3,12 +3,25 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, AlertTriangle } from "lucide-react";
+import { Package, Plus, AlertTriangle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
+import { Pagination } from "@/components/dashboard/pagination";
+import type { Metadata } from "next";
 
-export default async function InventoryPage() {
+export const metadata: Metadata = {
+  title: "Inventario — FiniTax GT",
+  description: "Productos, servicios y control de existencias",
+};
+
+export default async function InventoryPage(props: { searchParams: Promise<{ page?: string }> }) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page) || 1;
+  const pageSize = 25;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -22,11 +35,19 @@ export default async function InventoryPage() {
 
   if (!membership) redirect("/dashboard");
 
-  const { data: items } = await supabase
+  // Paginated query for table
+  const { data: items, count: itemsCount } = await supabase
     .from("inventory_items")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("organization_id", membership.organization_id)
-    .order("name");
+    .order("name")
+    .range(from, to);
+
+  // KPI aggregates (use full dataset counts)
+  const { count: totalCount } = await supabase
+    .from("inventory_items")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", membership.organization_id);
 
   const totalValue = items?.reduce((sum: number, i: any) =>
     sum + Number(i.cost_price || 0) * Number(i.current_stock || 0), 0) ?? 0;
@@ -35,34 +56,39 @@ export default async function InventoryPage() {
     Number(i.current_stock) <= Number(i.min_stock) && Number(i.min_stock) > 0).length ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Inventario</h1>
-          <p className="text-muted-foreground">Productos, servicios y control de existencias</p>
+        <div className="page-header">
+          <h1>Inventario</h1>
+          <p>Productos, servicios y control de existencias</p>
         </div>
-        <Link href="/dashboard/inventory/new">
-          <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Producto</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/imports/ai-workspace">
+            <Button variant="outline"><Sparkles className="mr-2 h-4 w-4 text-amber-400" /> Importar con IA</Button>
+          </Link>
+          <Link href="/dashboard/inventory/new">
+            <Button><Plus className="mr-2 h-4 w-4" /> Nuevo Producto</Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Valor del Inventario</p>
-            <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Valor del Inventario</p>
+            <p className="text-2xl font-bold tabular-nums">{formatCurrency(totalValue)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Total Productos</p>
-            <p className="text-2xl font-bold">{items?.length ?? 0}</p>
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Total Productos</p>
+            <p className="text-2xl font-bold tabular-nums">{totalCount ?? 0}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-muted-foreground">Stock Bajo</p>
-            <p className="text-2xl font-bold text-orange-600">
+        <Card className="card-hover">
+          <CardContent className="p-5">
+            <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">Stock Bajo</p>
+            <p className="text-2xl font-bold text-orange-600 tabular-nums">
               {lowStock > 0 && <AlertTriangle className="inline h-5 w-5 mr-1" />}
               {lowStock}
             </p>
@@ -93,7 +119,7 @@ export default async function InventoryPage() {
               </TableHeader>
               <TableBody>
                 {items.map((item: any) => (
-                  <TableRow key={item.id} className={Number(item.current_stock) <= Number(item.min_stock) && Number(item.min_stock) > 0 ? "bg-orange-50" : ""}>
+                  <TableRow key={item.id} className={Number(item.current_stock) <= Number(item.min_stock) && Number(item.min_stock) > 0 ? "bg-orange-50 dark:bg-orange-950/30" : ""}>
                     <TableCell className="font-mono text-xs">{item.sku || "—"}</TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.category || "—"}</TableCell>
@@ -112,6 +138,8 @@ export default async function InventoryPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination totalItems={itemsCount ?? 0} pageSize={pageSize} />
     </div>
   );
 }

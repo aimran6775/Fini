@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { MONTH_NAMES } from "@/lib/tax-utils";
+import { MONTH_NAMES, TAX_RATES } from "@/lib/tax-utils";
 import { requireOrgMembership } from "@/lib/auth-guard";
 
 export interface AccountBalance {
@@ -610,34 +610,30 @@ export async function getPayrollReport(orgId: string, month?: string) {
 
   if (!employees) return [];
 
-  const IGSS_EMP = 0.0483;
-  const IGSS_PAT = 0.1067;
-  const IRTRA = 0.01;
-  const INTECAP = 0.01;
-  const BONO_14_MONTHLY = 1 / 12;
-  const ISR_SIMPLIFICADO_THRESHOLD = 150000;
-
   return employees.map((emp: any) => {
     const base = Number(emp.base_salary || 0);
     const bonificacion = 250; // Bonificación incentivo legal
     const totalIngresos = base + bonificacion;
 
-    const igssEmployee = base * IGSS_EMP;
+    const igssEmployee = base * TAX_RATES.IGSS_EMPLOYEE;
+    // ISR: deduct IGSS and Q48,000 standard deduction, then apply brackets
     const annualSalary = base * 12;
-    const annualAfterIGSS = annualSalary - (igssEmployee * 12);
+    const annualIGSS = igssEmployee * 12;
+    const taxableAnnual = Math.max(0, annualSalary - annualIGSS - TAX_RATES.ISR_EMPLOYEE_DEDUCTION);
     let isrAnnual = 0;
-    if (annualAfterIGSS > ISR_SIMPLIFICADO_THRESHOLD) {
-      isrAnnual = ISR_SIMPLIFICADO_THRESHOLD * 0.05 + (annualAfterIGSS - ISR_SIMPLIFICADO_THRESHOLD) * 0.07;
-    } else if (annualAfterIGSS > 0) {
-      isrAnnual = annualAfterIGSS * 0.05;
+    if (taxableAnnual > TAX_RATES.ISR_EMPLOYEE_THRESHOLD) {
+      isrAnnual = TAX_RATES.ISR_EMPLOYEE_THRESHOLD * TAX_RATES.ISR_EMPLOYEE_LOW +
+        (taxableAnnual - TAX_RATES.ISR_EMPLOYEE_THRESHOLD) * TAX_RATES.ISR_EMPLOYEE_HIGH;
+    } else if (taxableAnnual > 0) {
+      isrAnnual = taxableAnnual * TAX_RATES.ISR_EMPLOYEE_LOW;
     }
     const isrMonthly = isrAnnual / 12;
     const totalDeducciones = igssEmployee + isrMonthly;
     const liquido = totalIngresos - totalDeducciones;
 
-    const igssPatronal = base * IGSS_PAT;
-    const irtra = base * IRTRA;
-    const intecap = base * INTECAP;
+    const igssPatronal = base * TAX_RATES.IGSS_EMPLOYER;
+    const irtra = base * TAX_RATES.IRTRA;
+    const intecap = base * TAX_RATES.INTECAP;
 
     return {
       employee_name: `${emp.first_name || ""} ${emp.last_name || ""}`.trim(),

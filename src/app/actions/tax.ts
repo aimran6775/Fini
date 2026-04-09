@@ -150,10 +150,42 @@ export async function calculateISO(orgId: string, quarter: number, year: number)
     .lte("invoice_date", endDate);
 
   const quarterlyIncome = invoices?.reduce((sum: number, i: any) => sum + Number(i.total || 0), 0) ?? 0;
-  const annualizedIncome = quarterlyIncome * 4;
 
-  // For simplicity, use quarterly income / 4 as base
-  const taxBase = quarterlyIncome;
+  // ISO base: greater of quarterly income or total net assets / 4
+  // Query net assets from balance sheet (assets - liabilities)
+  const { data: accounts } = await supabase
+    .from("chart_of_accounts")
+    .select("id, account_type")
+    .eq("organization_id", orgId)
+    .eq("is_active", true);
+
+  let totalNetAssets = 0;
+  if (accounts && accounts.length > 0) {
+    const assetIds = accounts.filter(a => a.account_type === "ASSET").map(a => a.id);
+    const liabilityIds = accounts.filter(a => a.account_type === "LIABILITY").map(a => a.id);
+
+    if (assetIds.length > 0 || liabilityIds.length > 0) {
+      const { data: lines } = await supabase
+        .from("journal_entry_lines")
+        .select("account_id, debit, credit")
+        .in("account_id", [...assetIds, ...liabilityIds]);
+
+      let totalAssets = 0;
+      let totalLiabilities = 0;
+      (lines || []).forEach((line: any) => {
+        if (assetIds.includes(line.account_id)) {
+          totalAssets += Number(line.debit || 0) - Number(line.credit || 0);
+        } else {
+          totalLiabilities += Number(line.credit || 0) - Number(line.debit || 0);
+        }
+      });
+      totalNetAssets = Math.max(0, totalAssets - totalLiabilities);
+    }
+  }
+
+  // ISO = 1% of the GREATER of quarterly income or net assets / 4
+  const netAssetsQuarterly = totalNetAssets / 4;
+  const taxBase = Math.max(quarterlyIncome, netAssetsQuarterly);
   const taxAmount = taxBase * TAX_RATES.ISO;
 
   return {
