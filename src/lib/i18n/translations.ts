@@ -10,7 +10,7 @@ export const translations = {
     },
     // Hero
     hero: {
-      badge: "Plataforma fiscal #1 de Guatemala",
+      badge: "Impuestos y contabilidad simplificados",
       title1: "Impuestos y",
       titleHighlight: "Contabilidad",
       title2: "para Guatemala",
@@ -171,7 +171,7 @@ export const translations = {
     },
     // Hero
     hero: {
-      badge: "Guatemala's #1 Tax & Accounting Platform",
+      badge: "Taxes & accounting made simple",
       title1: "Taxes and",
       titleHighlight: "Accounting",
       title2: "for Guatemala",
