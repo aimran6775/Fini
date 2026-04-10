@@ -3,6 +3,23 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ADMIN_EMAIL } from "@/lib/supabase/admin";
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Public routes that don't need auth at all — skip Supabase entirely
+  const publicRoutes = ["/", "/login", "/signup", "/forgot-password", "/auth", "/admin/login", "/terminos", "/privacidad", "/precios"];
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith("/auth/")
+  );
+  const isApiRoute = pathname.startsWith("/api/");
+  const isStaticAsset = pathname === "/sitemap.xml" || pathname === "/robots.txt" || pathname === "/icon.svg" || pathname === "/opengraph-image";
+
+  // For public routes, API routes, and static assets, skip Supabase auth
+  // entirely. This avoids an HTTP round-trip to Supabase on every page load.
+  if (isPublicRoute || isApiRoute || isStaticAsset) {
+    return NextResponse.next({ request });
+  }
+
+  // Only create a Supabase client for protected routes
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -30,15 +47,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
-
-  // Public routes that don't require auth
-  const publicRoutes = ["/", "/login", "/signup", "/forgot-password", "/auth", "/admin/login", "/terminos", "/privacidad", "/precios"];
-  const isPublicRoute = publicRoutes.some(
-    (route) => pathname === route || pathname.startsWith("/auth/")
-  );
-  const isApiRoute = pathname.startsWith("/api/");
-  const isStaticAsset = pathname === "/sitemap.xml" || pathname === "/robots.txt" || pathname === "/icon.svg" || pathname === "/opengraph-image";
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
 
   // Admin routes: require auth + admin email
@@ -56,24 +64,17 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Redirect unauthenticated users to login
-  if (!user && !isPublicRoute && !isApiRoute && !isStaticAsset) {
+  // Redirect unauthenticated users to login (for protected routes)
+  if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   // Redirect authenticated admin to admin panel
-  if (user && user.email === ADMIN_EMAIL && pathname === "/admin/login") {
+  if (user.email === ADMIN_EMAIL && pathname === "/admin/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect authenticated users away from auth pages
-  if (user && (pathname === "/login" || pathname === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
