@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build output
+.next
+out
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files
+*.MOV
+*.mov
+*.mp4
+*.pdf
+*.zip
+*.tar.gz
+
+# Documentation
+*.md
+DNS-SETUP-FINITAXGT.md
+
+# Env files (Railway injects these)
+.env
+.env.local
+.env.production
+.env*.local
+
+# Supabase local
+supabase/.temp
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
