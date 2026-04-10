@@ -395,11 +395,6 @@ export default function LandingPage() {
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 py-20 sm:py-32">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm text-white/70 mb-8 backdrop-blur-sm animate-fade-in">
-              <Sparkles className="h-4 w-4 text-amber-400" />
-              <span>{t.hero.badge}</span>
-            </div>
-
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 animate-fade-in-up">
               {t.hero.title1}{" "}
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-slate-300 bg-clip-text text-transparent">
